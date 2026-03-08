@@ -1,29 +1,34 @@
 package com.app.todoleast.ui.components
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.drawscope.rotate
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-data class Confetti(
-    val x: Float,
-    val y: Float,
-    val angle: Float,
-    val speed: Float,
+private data class ConfettiParticle(
+    val startX: Float,
+    val startY: Float,
+    val velocityX: Float,
+    val velocityY: Float,
+    val rotation: Float,
+    val rotationSpeed: Float,
     val color: Color,
-    val size: Float
+    val width: Float,
+    val height: Float,
+    val swayAmplitude: Float,
+    val swayFrequency: Float
 )
 
 @Composable
@@ -42,19 +47,27 @@ fun CelebrationEffect(
         Color(0xFFF38181),
         Color(0xFFAA96DA),
         Color(0xFFFCBF49),
-        Color(0xFF2EC4B6)
+        Color(0xFF2EC4B6),
+        Color(0xFF6C5CE7),
+        Color(0xFFFF7675)
     )
 
-    val confettiCount = 100
-    val confettis = remember {
-        List(confettiCount) {
-            Confetti(
-                x = Random.nextFloat(),
-                y = Random.nextFloat() * 0.3f,
-                angle = Random.nextFloat() * 360f,
-                speed = 0.5f + Random.nextFloat() * 1.5f,
+    val particles = remember {
+        List(80) {
+            val angle = Random.nextFloat() * 180f - 90f
+            val speed = 800f + Random.nextFloat() * 600f
+            ConfettiParticle(
+                startX = 0.4f + Random.nextFloat() * 0.2f,
+                startY = 1f,
+                velocityX = cos(Math.toRadians(angle.toDouble())).toFloat() * speed * 0.4f,
+                velocityY = -sin(Math.toRadians((45f + Random.nextFloat() * 45f).toDouble())).toFloat() * speed,
+                rotation = Random.nextFloat() * 360f,
+                rotationSpeed = (Random.nextFloat() - 0.5f) * 720f,
                 color = colors.random(),
-                size = 8f + Random.nextFloat() * 12f
+                width = 8f + Random.nextFloat() * 8f,
+                height = 12f + Random.nextFloat() * 12f,
+                swayAmplitude = 20f + Random.nextFloat() * 40f,
+                swayFrequency = 2f + Random.nextFloat() * 3f
             )
         }
     }
@@ -63,42 +76,47 @@ fun CelebrationEffect(
 
     LaunchedEffect(show) {
         if (show) {
-            launch {
-                progress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(
-                        durationMillis = 2000,
-                        easing = FastOutSlowInEasing
-                    )
+            progress.snapTo(0f)
+            progress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(
+                    durationMillis = 2500,
+                    easing = LinearEasing
                 )
-                onAnimationComplete()
-            }
+            )
+            onAnimationComplete()
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val currentProgress = progress.value
+    Canvas(modifier = modifier.fillMaxSize()) {
+        val time = progress.value
+        val gravity = 1500f
 
-            confettis.forEach { confetti ->
-                val gravity = 2f
-                val time = currentProgress * confetti.speed
+        particles.forEach { particle ->
+            val t = time * 2.5f
 
-                val dx = cos(Math.toRadians(confetti.angle.toDouble())).toFloat() * 200f * time
-                val dy = sin(Math.toRadians(confetti.angle.toDouble())).toFloat() * 100f * time +
-                        gravity * time * time * 500f
+            val sway = sin(t * particle.swayFrequency * Math.PI).toFloat() * particle.swayAmplitude
 
-                val x = confetti.x * size.width + dx
-                val y = confetti.y * size.height + dy
+            val x = particle.startX * size.width + particle.velocityX * t + sway
+            val y = particle.startY * size.height + particle.velocityY * t + 0.5f * gravity * t * t
 
-                val alpha = (1f - currentProgress).coerceIn(0f, 1f)
-                val rotation = confetti.angle + currentProgress * 720f
+            val currentRotation = particle.rotation + particle.rotationSpeed * t
 
-                if (y < size.height && alpha > 0) {
-                    drawCircle(
-                        color = confetti.color.copy(alpha = alpha),
-                        radius = confetti.size * (1f - currentProgress * 0.3f),
-                        center = Offset(x, y)
+            val alpha = when {
+                time < 0.1f -> time * 10f
+                time > 0.7f -> (1f - time) / 0.3f
+                else -> 1f
+            }.coerceIn(0f, 1f)
+
+            if (y < size.height + 50 && y > -50 && x > -50 && x < size.width + 50 && alpha > 0) {
+                rotate(
+                    degrees = currentRotation,
+                    pivot = Offset(x, y)
+                ) {
+                    drawRect(
+                        color = particle.color.copy(alpha = alpha),
+                        topLeft = Offset(x - particle.width / 2, y - particle.height / 2),
+                        size = Size(particle.width, particle.height)
                     )
                 }
             }
