@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
+import com.app.todoleast.ui.components.CelebrationEffect
 import com.app.todoleast.ui.components.FilterChips
 import com.app.todoleast.ui.components.TaskItem
 import com.app.todoleast.viewmodel.TaskViewModel
@@ -50,10 +51,12 @@ fun TaskListScreen(
 ) {
     val tasks by viewModel.tasks.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
+    val justCompletedTask by viewModel.justCompletedTask.collectAsState()
     val filteredTasks = viewModel.getFilteredTasks()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    Scaffold(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
@@ -138,6 +141,13 @@ fun TaskListScreen(
                 )
             }
         }
+    }
+
+        // Celebration effect overlay
+        CelebrationEffect(
+            show = justCompletedTask != null,
+            onAnimationComplete = { viewModel.clearJustCompletedTask() }
+        )
     }
 }
 
