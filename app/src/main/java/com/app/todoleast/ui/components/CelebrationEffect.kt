@@ -18,8 +18,6 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 private data class ConfettiParticle(
-    val startX: Float,
-    val startY: Float,
     val velocityX: Float,
     val velocityY: Float,
     val rotation: Float,
@@ -34,6 +32,7 @@ private data class ConfettiParticle(
 @Composable
 fun CelebrationEffect(
     show: Boolean,
+    startPosition: Offset,
     onAnimationComplete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -52,21 +51,19 @@ fun CelebrationEffect(
         Color(0xFFFF7675)
     )
 
-    val particles = remember {
-        List(80) {
-            val angle = Random.nextFloat() * 180f - 90f
-            val speed = 800f + Random.nextFloat() * 600f
+    val particles = remember(startPosition) {
+        List(60) {
+            val angle = Random.nextFloat() * 360f
+            val speed = 400f + Random.nextFloat() * 400f
             ConfettiParticle(
-                startX = 0.4f + Random.nextFloat() * 0.2f,
-                startY = 1f,
-                velocityX = cos(Math.toRadians(angle.toDouble())).toFloat() * speed * 0.4f,
-                velocityY = -sin(Math.toRadians((45f + Random.nextFloat() * 45f).toDouble())).toFloat() * speed,
+                velocityX = cos(Math.toRadians(angle.toDouble())).toFloat() * speed,
+                velocityY = sin(Math.toRadians(angle.toDouble())).toFloat() * speed - 300f,
                 rotation = Random.nextFloat() * 360f,
                 rotationSpeed = (Random.nextFloat() - 0.5f) * 720f,
                 color = colors.random(),
                 width = 8f + Random.nextFloat() * 8f,
                 height = 12f + Random.nextFloat() * 12f,
-                swayAmplitude = 20f + Random.nextFloat() * 40f,
+                swayAmplitude = 10f + Random.nextFloat() * 20f,
                 swayFrequency = 2f + Random.nextFloat() * 3f
             )
         }
@@ -74,13 +71,13 @@ fun CelebrationEffect(
 
     val progress = remember { Animatable(0f) }
 
-    LaunchedEffect(show) {
+    LaunchedEffect(show, startPosition) {
         if (show) {
             progress.snapTo(0f)
             progress.animateTo(
                 targetValue = 1f,
                 animationSpec = tween(
-                    durationMillis = 2500,
+                    durationMillis = 1800,
                     easing = LinearEasing
                 )
             )
@@ -90,21 +87,21 @@ fun CelebrationEffect(
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val time = progress.value
-        val gravity = 1500f
+        val gravity = 800f
 
         particles.forEach { particle ->
-            val t = time * 2.5f
+            val t = time * 2f
 
             val sway = sin(t * particle.swayFrequency * Math.PI).toFloat() * particle.swayAmplitude
 
-            val x = particle.startX * size.width + particle.velocityX * t + sway
-            val y = particle.startY * size.height + particle.velocityY * t + 0.5f * gravity * t * t
+            val x = startPosition.x + particle.velocityX * t + sway
+            val y = startPosition.y + particle.velocityY * t + 0.5f * gravity * t * t
 
             val currentRotation = particle.rotation + particle.rotationSpeed * t
 
             val alpha = when {
-                time < 0.1f -> time * 10f
-                time > 0.7f -> (1f - time) / 0.3f
+                time < 0.05f -> time * 20f
+                time > 0.6f -> (1f - time) / 0.4f
                 else -> 1f
             }.coerceIn(0f, 1f)
 

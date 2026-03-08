@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.app.todoleast.model.Task
@@ -47,11 +48,11 @@ fun TaskListScreen(
     viewModel: TaskViewModel,
     onAddTaskClick: () -> Unit,
     onTaskClick: (String) -> Unit,
-    onToggleTaskCompletion: (String) -> Unit
+    onToggleTaskCompletion: (String, Offset) -> Unit
 ) {
     val tasks by viewModel.tasks.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
-    val justCompletedTask by viewModel.justCompletedTask.collectAsState()
+    val celebrationState by viewModel.celebrationState.collectAsState()
     val filteredTasks = viewModel.getFilteredTasks()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -145,8 +146,9 @@ fun TaskListScreen(
 
         // Celebration effect overlay
         CelebrationEffect(
-            show = justCompletedTask != null,
-            onAnimationComplete = { viewModel.clearJustCompletedTask() }
+            show = celebrationState.task != null,
+            startPosition = celebrationState.position,
+            onAnimationComplete = { viewModel.clearCelebration() }
         )
     }
 }
@@ -227,7 +229,7 @@ private fun EmptyFilterState(
 private fun TaskList(
     tasks: List<Task>,
     onTaskClick: (String) -> Unit,
-    onToggleTaskCompletion: (String) -> Unit,
+    onToggleTaskCompletion: (String, Offset) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -242,7 +244,7 @@ private fun TaskList(
             TaskItem(
                 task = task,
                 onTaskClick = { onTaskClick(task.id) },
-                onToggleCompletion = { onToggleTaskCompletion(task.id) }
+                onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
             )
         }
 

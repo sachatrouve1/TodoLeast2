@@ -38,8 +38,8 @@ fun NavGraph(
                 onTaskClick = { taskId ->
                     navController.navigate(Screen.EditTask.createRoute(taskId))
                 },
-                onToggleTaskCompletion = { taskId ->
-                    viewModel.toggleTaskCompletion(taskId)
+                onToggleTaskCompletion = { taskId, position ->
+                    viewModel.toggleTaskCompletion(taskId, position)
                 }
             )
         }
