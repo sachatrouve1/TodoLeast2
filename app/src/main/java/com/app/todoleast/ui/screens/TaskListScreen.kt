@@ -42,7 +42,9 @@ import com.app.todoleast.viewmodel.TaskViewModel
 @Composable
 fun TaskListScreen(
     viewModel: TaskViewModel,
-    onAddTaskClick: () -> Unit
+    onAddTaskClick: () -> Unit,
+    onTaskClick: (String) -> Unit,
+    onToggleTaskCompletion: (String) -> Unit
 ) {
     val tasks by viewModel.tasks.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -106,6 +108,8 @@ fun TaskListScreen(
         ) {
             TaskList(
                 tasks = viewModel.getTasksSortedByDate(),
+                onTaskClick = onTaskClick,
+                onToggleTaskCompletion = onToggleTaskCompletion,
                 modifier = Modifier.padding(paddingValues)
             )
         }
@@ -149,6 +153,8 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 @Composable
 private fun TaskList(
     tasks: List<Task>,
+    onTaskClick: (String) -> Unit,
+    onToggleTaskCompletion: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -160,7 +166,11 @@ private fun TaskList(
             items = tasks,
             key = { it.id }
         ) { task ->
-            TaskItem(task = task)
+            TaskItem(
+                task = task,
+                onTaskClick = { onTaskClick(task.id) },
+                onToggleCompletion = { onToggleTaskCompletion(task.id) }
+            )
         }
 
         // Bottom spacing for FAB
