@@ -12,7 +12,8 @@ data class Task(
     val dueTime: LocalTime? = null,
     val createdAt: LocalDate = LocalDate.now(),
     val completedAt: LocalDate? = null,
-    val status: TaskStatus = TaskStatus.TO_DO
+    val status: TaskStatus = TaskStatus.TO_DO,
+    val repeat: Repeat = Repeat.NONE
 ) {
     fun isOverdue(): Boolean {
         if (status == TaskStatus.COMPLETED) return false
