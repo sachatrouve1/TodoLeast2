@@ -43,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
 import com.app.todoleast.ui.theme.StatusCompleted
-import com.app.todoleast.ui.theme.StatusOnGoing
 import com.app.todoleast.ui.theme.StatusOverdue
 import com.app.todoleast.ui.theme.StatusToDo
 import java.time.format.DateTimeFormatter
@@ -59,7 +58,6 @@ fun TaskItem(
     val isCompleted = effectiveStatus == TaskStatus.COMPLETED
     val statusColor = when (effectiveStatus) {
         TaskStatus.TO_DO -> StatusToDo
-        TaskStatus.ON_GOING -> StatusOnGoing
         TaskStatus.COMPLETED -> StatusCompleted
         TaskStatus.OVERDUE -> StatusOverdue
     }
@@ -203,7 +201,6 @@ fun TaskItem(
 private fun StatusBadge(status: TaskStatus) {
     val (text, color) = when (status) {
         TaskStatus.TO_DO -> "A faire" to StatusToDo
-        TaskStatus.ON_GOING -> "En cours" to StatusOnGoing
         TaskStatus.COMPLETED -> "Terminee" to StatusCompleted
         TaskStatus.OVERDUE -> "En retard" to StatusOverdue
     }

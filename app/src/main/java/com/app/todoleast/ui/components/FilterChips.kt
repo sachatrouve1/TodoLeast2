@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.app.todoleast.model.TaskStatus
 import com.app.todoleast.ui.theme.StatusCompleted
-import com.app.todoleast.ui.theme.StatusOnGoing
 import com.app.todoleast.ui.theme.StatusOverdue
 import com.app.todoleast.ui.theme.StatusToDo
 
@@ -47,16 +46,6 @@ fun FilterChips(
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = StatusToDo.copy(alpha = 0.2f),
                 selectedLabelColor = StatusToDo
-            )
-        )
-
-        FilterChip(
-            selected = selectedFilter == TaskStatus.ON_GOING,
-            onClick = { onFilterSelected(TaskStatus.ON_GOING) },
-            label = { Text("En cours") },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = StatusOnGoing.copy(alpha = 0.2f),
-                selectedLabelColor = StatusOnGoing
             )
         )
 

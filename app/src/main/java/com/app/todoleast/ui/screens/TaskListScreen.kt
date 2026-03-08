@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -53,7 +54,9 @@ fun TaskListScreen(
     val tasks by viewModel.tasks.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
     val celebrationState by viewModel.celebrationState.collectAsState()
-    val filteredTasks = viewModel.getFilteredTasks()
+    val filteredTasks = remember(tasks, selectedFilter) {
+        viewModel.getFilteredTasks()
+    }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -194,7 +197,6 @@ private fun EmptyFilterState(
 ) {
     val filterName = when (filter) {
         TaskStatus.TO_DO -> "a faire"
-        TaskStatus.ON_GOING -> "en cours"
         TaskStatus.COMPLETED -> "terminee"
         TaskStatus.OVERDUE -> "en retard"
         null -> ""
