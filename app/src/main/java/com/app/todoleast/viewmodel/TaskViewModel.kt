@@ -17,8 +17,19 @@ class TaskViewModel : ViewModel() {
     private val _selectedFilter = MutableStateFlow<TaskStatus?>(null)
     val selectedFilter: StateFlow<TaskStatus?> = _selectedFilter.asStateFlow()
 
+    private val _justCompletedTask = MutableStateFlow<Task?>(null)
+    val justCompletedTask: StateFlow<Task?> = _justCompletedTask.asStateFlow()
+
     fun setFilter(status: TaskStatus?) {
         _selectedFilter.value = status
+    }
+
+    fun clearJustCompletedTask() {
+        _justCompletedTask.value = null
+    }
+
+    fun getOverdueTasks(): List<Task> {
+        return _tasks.value.filter { it.getEffectiveStatus() == TaskStatus.OVERDUE }
     }
 
     fun addTask(
@@ -87,24 +98,32 @@ class TaskViewModel : ViewModel() {
     }
 
     fun toggleTaskCompletion(taskId: String) {
+        val task = _tasks.value.find { it.id == taskId } ?: return
+        val wasCompleted = task.status == TaskStatus.COMPLETED
+
         _tasks.update { currentTasks ->
-            currentTasks.map { task ->
-                if (task.id == taskId) {
-                    if (task.status == TaskStatus.COMPLETED) {
-                        task.copy(
+            currentTasks.map { t ->
+                if (t.id == taskId) {
+                    if (wasCompleted) {
+                        t.copy(
                             status = TaskStatus.TO_DO,
                             completedAt = null
                         )
                     } else {
-                        task.copy(
+                        t.copy(
                             status = TaskStatus.COMPLETED,
                             completedAt = LocalDate.now()
                         )
                     }
                 } else {
-                    task
+                    t
                 }
             }
+        }
+
+        // Trigger celebration effect when completing a task
+        if (!wasCompleted) {
+            _justCompletedTask.value = task
         }
     }
 }
