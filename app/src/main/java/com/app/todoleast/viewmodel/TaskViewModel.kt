@@ -2,6 +2,7 @@ package com.app.todoleast.viewmodel
 
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
+import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
@@ -44,7 +45,8 @@ class TaskViewModel : ViewModel() {
         description: String = "",
         dueDate: LocalDate? = null,
         dueTime: LocalTime? = null,
-        repeat: Repeat = Repeat.NONE
+        repeat: Repeat = Repeat.NONE,
+        priority: Priority = Priority.MEDIUM
     ) {
         if (title.isBlank()) return
 
@@ -54,7 +56,8 @@ class TaskViewModel : ViewModel() {
             dueDate = dueDate,
             dueTime = dueTime,
             status = TaskStatus.TO_DO,
-            repeat = repeat
+            repeat = repeat,
+            priority = priority
         )
 
         _tasks.update { currentTasks ->
@@ -84,6 +87,7 @@ class TaskViewModel : ViewModel() {
 
         return filteredTasks.sortedWith(
             compareBy<Task> { it.status == TaskStatus.COMPLETED }
+                .thenByDescending { it.priority.ordinal }
                 .thenBy { it.dueDate ?: LocalDate.MAX }
                 .thenBy { it.createdAt }
         )
@@ -99,7 +103,8 @@ class TaskViewModel : ViewModel() {
         description: String,
         dueDate: LocalDate?,
         dueTime: LocalTime?,
-        repeat: Repeat = Repeat.NONE
+        repeat: Repeat = Repeat.NONE,
+        priority: Priority = Priority.MEDIUM
     ) {
         if (title.isBlank()) return
 
@@ -111,7 +116,8 @@ class TaskViewModel : ViewModel() {
                         description = description.trim(),
                         dueDate = dueDate,
                         dueTime = dueTime,
-                        repeat = repeat
+                        repeat = repeat,
+                        priority = priority
                     )
                 } else {
                     task
@@ -159,7 +165,8 @@ class TaskViewModel : ViewModel() {
                         dueDate = nextDueDate,
                         dueTime = task.dueTime,
                         status = TaskStatus.TO_DO,
-                        repeat = task.repeat
+                        repeat = task.repeat,
+                        priority = task.priority
                     )
                     updatedTasks + newTask
                 } else {
