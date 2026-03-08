@@ -14,9 +14,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,7 +48,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.Task
+import com.app.todoleast.ui.components.RepeatSelector
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -57,14 +62,17 @@ import java.time.format.DateTimeFormatter
 fun EditTaskScreen(
     task: Task,
     onNavigateBack: () -> Unit,
-    onTaskUpdated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?) -> Unit
+    onTaskUpdated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat) -> Unit,
+    onDeleteTask: () -> Unit
 ) {
     var title by remember { mutableStateOf(task.title) }
     var description by remember { mutableStateOf(task.description) }
     var dueDate by remember { mutableStateOf(task.dueDate) }
     var dueTime by remember { mutableStateOf(task.dueTime) }
+    var repeat by remember { mutableStateOf(task.repeat) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
     val isFormValid = title.isNotBlank()
@@ -83,6 +91,15 @@ fun EditTaskScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showDeleteConfirmation = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Supprimer",
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 },
@@ -238,12 +255,28 @@ fun EditTaskScreen(
                     }
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Repetition (optionnel)",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            RepeatSelector(
+                selectedRepeat = repeat,
+                onRepeatSelected = { repeat = it }
+            )
+
             Spacer(modifier = Modifier.height(32.dp))
 
             // Save button
             Button(
                 onClick = {
-                    onTaskUpdated(title, description, dueDate, dueTime)
+                    onTaskUpdated(title, description, dueDate, dueTime, repeat)
                     onNavigateBack()
                 },
                 enabled = isFormValid,
@@ -261,6 +294,34 @@ fun EditTaskScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    // Delete confirmation dialog
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Supprimer la tache") },
+            text = { Text("Voulez-vous vraiment supprimer cette tache ?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDeleteTask()
+                        onNavigateBack()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Supprimer")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Annuler")
+                }
+            }
+        )
     }
 
     // Date Picker Dialog

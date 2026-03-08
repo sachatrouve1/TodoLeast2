@@ -45,6 +45,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import com.app.todoleast.model.Repeat
+import com.app.todoleast.ui.components.RepeatSelector
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -55,12 +57,13 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AddTaskScreen(
     onNavigateBack: () -> Unit,
-    onTaskCreated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?) -> Unit
+    onTaskCreated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var dueDate by remember { mutableStateOf<LocalDate?>(null) }
     var dueTime by remember { mutableStateOf<LocalTime?>(null) }
+    var repeat by remember { mutableStateOf(Repeat.NONE) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
@@ -236,12 +239,28 @@ fun AddTaskScreen(
                     }
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Repetition (optionnel)",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            RepeatSelector(
+                selectedRepeat = repeat,
+                onRepeatSelected = { repeat = it }
+            )
+
             Spacer(modifier = Modifier.height(32.dp))
 
             // Create button
             Button(
                 onClick = {
-                    onTaskCreated(title, description, dueDate, dueTime)
+                    onTaskCreated(title, description, dueDate, dueTime, repeat)
                     onNavigateBack()
                 },
                 enabled = isFormValid,
