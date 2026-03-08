@@ -14,6 +14,13 @@ class TaskViewModel : ViewModel() {
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
     val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
 
+    private val _selectedFilter = MutableStateFlow<TaskStatus?>(null)
+    val selectedFilter: StateFlow<TaskStatus?> = _selectedFilter.asStateFlow()
+
+    fun setFilter(status: TaskStatus?) {
+        _selectedFilter.value = status
+    }
+
     fun addTask(
         title: String,
         description: String = "",
@@ -35,8 +42,15 @@ class TaskViewModel : ViewModel() {
         }
     }
 
-    fun getTasksSortedByDate(): List<Task> {
-        return _tasks.value.sortedWith(
+    fun getFilteredTasks(): List<Task> {
+        val filter = _selectedFilter.value
+        val filteredTasks = if (filter == null) {
+            _tasks.value
+        } else {
+            _tasks.value.filter { it.getEffectiveStatus() == filter }
+        }
+
+        return filteredTasks.sortedWith(
             compareBy<Task> { it.status == TaskStatus.COMPLETED }
                 .thenBy { it.dueDate ?: LocalDate.MAX }
                 .thenBy { it.createdAt }
