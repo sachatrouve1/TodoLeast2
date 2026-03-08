@@ -48,8 +48,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.Task
+import com.app.todoleast.ui.components.PrioritySelector
 import com.app.todoleast.ui.components.RepeatSelector
 import java.time.Instant
 import java.time.LocalDate
@@ -62,7 +64,7 @@ import java.time.format.DateTimeFormatter
 fun EditTaskScreen(
     task: Task,
     onNavigateBack: () -> Unit,
-    onTaskUpdated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat) -> Unit,
+    onTaskUpdated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat, priority: Priority) -> Unit,
     onDeleteTask: () -> Unit
 ) {
     var title by remember { mutableStateOf(task.title) }
@@ -70,6 +72,7 @@ fun EditTaskScreen(
     var dueDate by remember { mutableStateOf(task.dueDate) }
     var dueTime by remember { mutableStateOf(task.dueTime) }
     var repeat by remember { mutableStateOf(task.repeat) }
+    var priority by remember { mutableStateOf(task.priority) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -271,12 +274,28 @@ fun EditTaskScreen(
                 onRepeatSelected = { repeat = it }
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Priorite",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            PrioritySelector(
+                selectedPriority = priority,
+                onPrioritySelected = { priority = it }
+            )
+
             Spacer(modifier = Modifier.height(32.dp))
 
             // Save button
             Button(
                 onClick = {
-                    onTaskUpdated(title, description, dueDate, dueTime, repeat)
+                    onTaskUpdated(title, description, dueDate, dueTime, repeat, priority)
                     onNavigateBack()
                 },
                 enabled = isFormValid,
