@@ -35,6 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.app.todoleast.model.Task
+import com.app.todoleast.model.TaskStatus
+import com.app.todoleast.ui.components.FilterChips
 import com.app.todoleast.ui.components.TaskItem
 import com.app.todoleast.viewmodel.TaskViewModel
 
@@ -47,6 +49,8 @@ fun TaskListScreen(
     onToggleTaskCompletion: (String) -> Unit
 ) {
     val tasks by viewModel.tasks.collectAsState()
+    val selectedFilter by viewModel.selectedFilter.collectAsState()
+    val filteredTasks = viewModel.getFilteredTasks()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -89,29 +93,50 @@ fun TaskListScreen(
             }
         }
     ) { paddingValues ->
-        AnimatedVisibility(
-            visible = tasks.isEmpty(),
-            enter = fadeIn(),
-            exit = fadeOut()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
-            EmptyState(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            )
-        }
+            // Filter chips
+            if (tasks.isNotEmpty()) {
+                FilterChips(
+                    selectedFilter = selectedFilter,
+                    onFilterSelected = { viewModel.setFilter(it) },
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
 
-        AnimatedVisibility(
-            visible = tasks.isNotEmpty(),
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            TaskList(
-                tasks = viewModel.getTasksSortedByDate(),
-                onTaskClick = onTaskClick,
-                onToggleTaskCompletion = onToggleTaskCompletion,
-                modifier = Modifier.padding(paddingValues)
-            )
+            AnimatedVisibility(
+                visible = tasks.isEmpty(),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                EmptyState(modifier = Modifier.fillMaxSize())
+            }
+
+            AnimatedVisibility(
+                visible = tasks.isNotEmpty() && filteredTasks.isEmpty(),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                EmptyFilterState(
+                    filter = selectedFilter,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            AnimatedVisibility(
+                visible = filteredTasks.isNotEmpty(),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                TaskList(
+                    tasks = filteredTasks,
+                    onTaskClick = onTaskClick,
+                    onToggleTaskCompletion = onToggleTaskCompletion
+                )
+            }
         }
     }
 }
@@ -145,6 +170,44 @@ private fun EmptyState(modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyFilterState(
+    filter: TaskStatus?,
+    modifier: Modifier = Modifier
+) {
+    val filterName = when (filter) {
+        TaskStatus.TO_DO -> "a faire"
+        TaskStatus.ON_GOING -> "en cours"
+        TaskStatus.COMPLETED -> "terminee"
+        TaskStatus.OVERDUE -> "en retard"
+        null -> ""
+    }
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.CheckCircle,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Aucune tache $filterName",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
