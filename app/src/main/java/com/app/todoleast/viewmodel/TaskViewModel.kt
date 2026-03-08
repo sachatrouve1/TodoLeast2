@@ -1,5 +1,6 @@
 package com.app.todoleast.viewmodel
 
+import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
@@ -10,6 +11,11 @@ import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.LocalTime
 
+data class CelebrationState(
+    val task: Task? = null,
+    val position: Offset = Offset.Zero
+)
+
 class TaskViewModel : ViewModel() {
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
     val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
@@ -17,15 +23,15 @@ class TaskViewModel : ViewModel() {
     private val _selectedFilter = MutableStateFlow<TaskStatus?>(null)
     val selectedFilter: StateFlow<TaskStatus?> = _selectedFilter.asStateFlow()
 
-    private val _justCompletedTask = MutableStateFlow<Task?>(null)
-    val justCompletedTask: StateFlow<Task?> = _justCompletedTask.asStateFlow()
+    private val _celebrationState = MutableStateFlow(CelebrationState())
+    val celebrationState: StateFlow<CelebrationState> = _celebrationState.asStateFlow()
 
     fun setFilter(status: TaskStatus?) {
         _selectedFilter.value = status
     }
 
-    fun clearJustCompletedTask() {
-        _justCompletedTask.value = null
+    fun clearCelebration() {
+        _celebrationState.value = CelebrationState()
     }
 
     fun getOverdueTasks(): List<Task> {
@@ -97,7 +103,7 @@ class TaskViewModel : ViewModel() {
         }
     }
 
-    fun toggleTaskCompletion(taskId: String) {
+    fun toggleTaskCompletion(taskId: String, clickPosition: Offset = Offset.Zero) {
         val task = _tasks.value.find { it.id == taskId } ?: return
         val wasCompleted = task.status == TaskStatus.COMPLETED
 
@@ -123,7 +129,7 @@ class TaskViewModel : ViewModel() {
 
         // Trigger celebration effect when completing a task
         if (!wasCompleted) {
-            _justCompletedTask.value = task
+            _celebrationState.value = CelebrationState(task = task, position = clickPosition)
         }
     }
 }
