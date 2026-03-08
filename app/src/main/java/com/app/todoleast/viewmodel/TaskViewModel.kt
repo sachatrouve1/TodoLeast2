@@ -2,6 +2,7 @@ package com.app.todoleast.viewmodel
 
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
+import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +43,8 @@ class TaskViewModel : ViewModel() {
         title: String,
         description: String = "",
         dueDate: LocalDate? = null,
-        dueTime: LocalTime? = null
+        dueTime: LocalTime? = null,
+        repeat: Repeat = Repeat.NONE
     ) {
         if (title.isBlank()) return
 
@@ -51,11 +53,24 @@ class TaskViewModel : ViewModel() {
             description = description.trim(),
             dueDate = dueDate,
             dueTime = dueTime,
-            status = TaskStatus.TO_DO
+            status = TaskStatus.TO_DO,
+            repeat = repeat
         )
 
         _tasks.update { currentTasks ->
             currentTasks + newTask
+        }
+    }
+
+    fun deleteTask(taskId: String) {
+        _tasks.update { currentTasks ->
+            currentTasks.filter { it.id != taskId }
+        }
+    }
+
+    fun deleteCompletedTasks() {
+        _tasks.update { currentTasks ->
+            currentTasks.filter { it.status != TaskStatus.COMPLETED }
         }
     }
 
@@ -83,7 +98,8 @@ class TaskViewModel : ViewModel() {
         title: String,
         description: String,
         dueDate: LocalDate?,
-        dueTime: LocalTime?
+        dueTime: LocalTime?,
+        repeat: Repeat = Repeat.NONE
     ) {
         if (title.isBlank()) return
 
@@ -94,7 +110,8 @@ class TaskViewModel : ViewModel() {
                         title = title.trim(),
                         description = description.trim(),
                         dueDate = dueDate,
-                        dueTime = dueTime
+                        dueTime = dueTime,
+                        repeat = repeat
                     )
                 } else {
                     task
@@ -108,7 +125,7 @@ class TaskViewModel : ViewModel() {
         val wasCompleted = task.status == TaskStatus.COMPLETED
 
         _tasks.update { currentTasks ->
-            currentTasks.map { t ->
+            val updatedTasks = currentTasks.map { t ->
                 if (t.id == taskId) {
                     if (wasCompleted) {
                         t.copy(
@@ -124,6 +141,32 @@ class TaskViewModel : ViewModel() {
                 } else {
                     t
                 }
+            }
+
+            // Si la tache a une periodicite, creer une nouvelle occurrence
+            if (!wasCompleted && task.repeat != Repeat.NONE && task.dueDate != null) {
+                val nextDueDate = when (task.repeat) {
+                    Repeat.DAILY -> task.dueDate.plusDays(1)
+                    Repeat.WEEKLY -> task.dueDate.plusWeeks(1)
+                    Repeat.MONTHLY -> task.dueDate.plusMonths(1)
+                    Repeat.NONE -> null
+                }
+
+                if (nextDueDate != null) {
+                    val newTask = Task(
+                        title = task.title,
+                        description = task.description,
+                        dueDate = nextDueDate,
+                        dueTime = task.dueTime,
+                        status = TaskStatus.TO_DO,
+                        repeat = task.repeat
+                    )
+                    updatedTasks + newTask
+                } else {
+                    updatedTasks
+                }
+            } else {
+                updatedTasks
             }
         }
 
