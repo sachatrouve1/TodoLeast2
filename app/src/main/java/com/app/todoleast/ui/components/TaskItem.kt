@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Circle
+import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
 import com.app.todoleast.ui.theme.StatusCompleted
@@ -189,9 +191,17 @@ fun TaskItem(
                     }
                 }
 
-                // Status badge
+                // Status and repeat badges
                 Spacer(modifier = Modifier.height(8.dp))
-                StatusBadge(status = effectiveStatus)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    StatusBadge(status = effectiveStatus)
+                    if (task.repeat != Repeat.NONE) {
+                        RepeatBadge(repeat = task.repeat)
+                    }
+                }
             }
         }
     }
@@ -215,6 +225,38 @@ private fun StatusBadge(status: TaskStatus) {
             text = text,
             style = MaterialTheme.typography.labelSmall,
             color = color,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+private fun RepeatBadge(repeat: Repeat) {
+    val text = when (repeat) {
+        Repeat.DAILY -> "Quotidien"
+        Repeat.WEEKLY -> "Hebdo"
+        Repeat.MONTHLY -> "Mensuel"
+        Repeat.NONE -> return
+    }
+
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Repeat,
+            contentDescription = null,
+            modifier = Modifier.size(12.dp),
+            tint = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
             fontWeight = FontWeight.Medium
         )
     }
