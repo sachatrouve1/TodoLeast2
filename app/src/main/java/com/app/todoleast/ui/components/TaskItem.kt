@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
@@ -191,13 +192,14 @@ fun TaskItem(
                     }
                 }
 
-                // Status and repeat badges
+                // Status, priority and repeat badges
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     StatusBadge(status = effectiveStatus)
+                    PriorityBadge(priority = task.priority)
                     if (task.repeat != Repeat.NONE) {
                         RepeatBadge(repeat = task.repeat)
                     }
@@ -257,6 +259,29 @@ private fun RepeatBadge(repeat: Repeat) {
             text = text,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+private fun PriorityBadge(priority: Priority) {
+    val (text, color) = when (priority) {
+        Priority.LOW -> "Basse" to androidx.compose.ui.graphics.Color(0xFF4CAF50)
+        Priority.MEDIUM -> "Moyenne" to androidx.compose.ui.graphics.Color(0xFFFF9800)
+        Priority.HIGH -> "Haute" to androidx.compose.ui.graphics.Color(0xFFF44336)
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(color.copy(alpha = 0.15f))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
             fontWeight = FontWeight.Medium
         )
     }
