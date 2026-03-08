@@ -42,4 +42,55 @@ class TaskViewModel : ViewModel() {
                 .thenBy { it.createdAt }
         )
     }
+
+    fun getTaskById(taskId: String): Task? {
+        return _tasks.value.find { it.id == taskId }
+    }
+
+    fun updateTask(
+        taskId: String,
+        title: String,
+        description: String,
+        dueDate: LocalDate?,
+        dueTime: LocalTime?
+    ) {
+        if (title.isBlank()) return
+
+        _tasks.update { currentTasks ->
+            currentTasks.map { task ->
+                if (task.id == taskId) {
+                    task.copy(
+                        title = title.trim(),
+                        description = description.trim(),
+                        dueDate = dueDate,
+                        dueTime = dueTime
+                    )
+                } else {
+                    task
+                }
+            }
+        }
+    }
+
+    fun toggleTaskCompletion(taskId: String) {
+        _tasks.update { currentTasks ->
+            currentTasks.map { task ->
+                if (task.id == taskId) {
+                    if (task.status == TaskStatus.COMPLETED) {
+                        task.copy(
+                            status = TaskStatus.TO_DO,
+                            completedAt = null
+                        )
+                    } else {
+                        task.copy(
+                            status = TaskStatus.COMPLETED,
+                            completedAt = LocalDate.now()
+                        )
+                    }
+                } else {
+                    task
+                }
+            }
+        }
+    }
 }
