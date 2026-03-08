@@ -1,6 +1,7 @@
 package com.app.todoleast.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,14 +12,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.app.todoleast.model.Task
@@ -39,9 +43,12 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun TaskItem(
     task: Task,
+    onTaskClick: () -> Unit,
+    onToggleCompletion: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val effectiveStatus = task.getEffectiveStatus()
+    val isCompleted = effectiveStatus == TaskStatus.COMPLETED
     val statusColor = when (effectiveStatus) {
         TaskStatus.TO_DO -> StatusToDo
         TaskStatus.ON_GOING -> StatusOnGoing
@@ -50,7 +57,9 @@ fun TaskItem(
     }
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onTaskClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -60,25 +69,34 @@ fun TaskItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Status indicator
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .clip(CircleShape)
-                    .background(statusColor)
-            )
+            // Completion checkbox
+            IconButton(
+                onClick = onToggleCompletion,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = if (isCompleted) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                    contentDescription = if (isCompleted) "Marquer comme non fait" else "Marquer comme fait",
+                    tint = statusColor,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = if (isCompleted)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    else
+                        MaterialTheme.colorScheme.onSurface,
+                    textDecoration = if (isCompleted) TextDecoration.LineThrough else null,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -88,7 +106,10 @@ fun TaskItem(
                     Text(
                         text = task.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                            alpha = if (isCompleted) 0.5f else 1f
+                        ),
+                        textDecoration = if (isCompleted) TextDecoration.LineThrough else null,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
