@@ -38,6 +38,7 @@ fi
 
 echo "APK trouvé: $APK_PATH"
 echo "Installation sur l'appareil..."
+adb uninstall com.app.todoleast
 adb install -r "$APK_PATH"
 
 echo "Installation terminée!"
