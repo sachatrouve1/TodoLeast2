@@ -16,19 +16,26 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -58,6 +65,10 @@ fun TaskListScreen(
         viewModel.getFilteredTasks()
     }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    var showDeleteCompletedDialog by remember { mutableStateOf(false) }
+    val hasCompletedTasks = remember(tasks) {
+        tasks.any { it.status == TaskStatus.COMPLETED }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -76,6 +87,17 @@ fun TaskListScreen(
                                 text = "${tasks.size} tache${if (tasks.size > 1) "s" else ""}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                },
+                actions = {
+                    if (hasCompletedTasks) {
+                        IconButton(onClick = { showDeleteCompletedDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = "Supprimer les taches terminees",
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -153,6 +175,33 @@ fun TaskListScreen(
             startPosition = celebrationState.position,
             onAnimationComplete = { viewModel.clearCelebration() }
         )
+
+        // Delete completed tasks confirmation dialog
+        if (showDeleteCompletedDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteCompletedDialog = false },
+                title = { Text("Supprimer les taches terminees") },
+                text = { Text("Voulez-vous vraiment supprimer toutes les taches terminees ?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteCompletedTasks()
+                            showDeleteCompletedDialog = false
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Supprimer")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteCompletedDialog = false }) {
+                        Text("Annuler")
+                    }
+                }
+            )
+        }
     }
 }
 
