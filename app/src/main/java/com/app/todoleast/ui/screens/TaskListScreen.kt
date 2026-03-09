@@ -70,14 +70,14 @@ fun TaskListScreen(
     val filteredTasks = remember(tasks, selectedFilter) {
         viewModel.getFilteredTasks()
     }
-    val dailyTasks = remember(tasks) {
-        viewModel.getFilteredPeriodicTasks(Repeat.DAILY)
+    val dailyTasks = remember(tasks, selectedFilter) {
+        viewModel.getFilteredPeriodicTasks(Repeat.DAILY, selectedFilter)
     }
-    val weeklyTasks = remember(tasks) {
-        viewModel.getFilteredPeriodicTasks(Repeat.WEEKLY)
+    val weeklyTasks = remember(tasks, selectedFilter) {
+        viewModel.getFilteredPeriodicTasks(Repeat.WEEKLY, selectedFilter)
     }
-    val monthlyTasks = remember(tasks) {
-        viewModel.getFilteredPeriodicTasks(Repeat.MONTHLY)
+    val monthlyTasks = remember(tasks, selectedFilter) {
+        viewModel.getFilteredPeriodicTasks(Repeat.MONTHLY, selectedFilter)
     }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var showDeleteCompletedDialog by remember { mutableStateOf(false) }

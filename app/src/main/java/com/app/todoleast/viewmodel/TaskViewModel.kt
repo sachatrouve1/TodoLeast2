@@ -133,9 +133,10 @@ class TaskViewModel : ViewModel() {
         )
     }
 
-    fun getFilteredPeriodicTasks(repeat: Repeat): List<Task> {
+    fun getFilteredPeriodicTasks(repeat: Repeat, filter: TaskStatus? = null): List<Task> {
         return _tasks.value
             .filter { it.repeat == repeat }
+            .filter { filter == null || it.getEffectiveStatus() == filter }
             .sortedWith(
                 compareBy<Task> { it.status == TaskStatus.COMPLETED }
                     .thenByDescending { it.priority.ordinal }
