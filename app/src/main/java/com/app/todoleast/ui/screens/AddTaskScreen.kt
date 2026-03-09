@@ -83,7 +83,7 @@ fun AddTaskScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Nouvelle tache",
+                        text = "Nouvelle tâche",
                         fontWeight = FontWeight.SemiBold
                     )
                 },
@@ -116,7 +116,7 @@ fun AddTaskScreen(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Titre *") },
-                placeholder = { Text("Entrez le titre de la tache") },
+                placeholder = { Text("Entrez le titre de la tâche") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -140,7 +140,7 @@ fun AddTaskScreen(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Description") },
-                placeholder = { Text("Ajoutez des details (optionnel)") },
+                placeholder = { Text("Ajoutez des détails (optionnel)") },
                 minLines = 3,
                 maxLines = 5,
                 modifier = Modifier.fillMaxWidth(),
@@ -157,7 +157,7 @@ fun AddTaskScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Repetition",
+                text = "Répétition",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -182,7 +182,7 @@ fun AddTaskScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Echeance (optionnel)",
+                    text = "Échéance (optionnel)",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -195,7 +195,7 @@ fun AddTaskScreen(
                     value = dueDate?.format(DateTimeFormatter.ofPattern("dd MMMM yyyy")) ?: "",
                     onValueChange = {},
                     label = { Text("Date limite") },
-                    placeholder = { Text("Selectionner une date") },
+                    placeholder = { Text("Sélectionner une date") },
                     readOnly = true,
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -237,7 +237,7 @@ fun AddTaskScreen(
                     value = dueTime?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: "",
                     onValueChange = {},
                     label = { Text("Heure limite") },
-                    placeholder = { Text("Selectionner une heure") },
+                    placeholder = { Text("Sélectionner une heure") },
                     readOnly = true,
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -276,7 +276,7 @@ fun AddTaskScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Priorite",
+                text = "Priorité",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -292,7 +292,7 @@ fun AddTaskScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Categorie",
+                text = "Catégorie",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -327,7 +327,7 @@ fun AddTaskScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
-                    text = "Creer la tache",
+                    text = "Créer la tâche",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )

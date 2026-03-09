@@ -37,7 +37,7 @@ class NotificationHelper(private val context: Context) {
             "Taches en retard",
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Notifications pour les taches en retard"
+            description = "Notifications pour les tâches en retard"
             enableVibration(true)
         }
 
@@ -46,7 +46,7 @@ class NotificationHelper(private val context: Context) {
             "Taches a venir",
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Notifications pour les taches arrivant a echeance"
+            description = "Notifications pour les tâches arrivant a échéance"
         }
 
         val urgentChannel = NotificationChannel(
@@ -54,7 +54,7 @@ class NotificationHelper(private val context: Context) {
             "Taches urgentes",
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Notifications pour les taches dans moins de 30 minutes"
+            description = "Notifications pour les tâches dans moins de 30 minutes"
             enableVibration(true)
         }
 
@@ -78,9 +78,9 @@ class NotificationHelper(private val context: Context) {
         )
 
         val title = if (overdueTasks.size == 1) {
-            "1 tache en retard"
+            "1 tâche en retard"
         } else {
-            "${overdueTasks.size} taches en retard"
+            "${overdueTasks.size} tâches en retard"
         }
 
         val content = if (overdueTasks.size == 1) {
@@ -119,9 +119,9 @@ class NotificationHelper(private val context: Context) {
         )
 
         val title = if (upcomingTasks.size == 1) {
-            "1 tache arrive a echeance"
+            "1 tâche arrive a échéance"
         } else {
-            "${upcomingTasks.size} taches arrivent a echeance"
+            "${upcomingTasks.size} tâches arrivent a échéance"
         }
 
         val content = if (upcomingTasks.size == 1) {
@@ -160,7 +160,7 @@ class NotificationHelper(private val context: Context) {
         val title = if (dueSoonTasks.size == 1) {
             "Tache dans moins de 30 min!"
         } else {
-            "${dueSoonTasks.size} taches dans moins de 30 min!"
+            "${dueSoonTasks.size} tâches dans moins de 30 min!"
         }
 
         val content = dueSoonTasks.first().title
@@ -195,7 +195,7 @@ class NotificationHelper(private val context: Context) {
         val title = if (missedTasks.size == 1) {
             "Tache recurrente non faite!"
         } else {
-            "${missedTasks.size} taches recurrentes non faites!"
+            "${missedTasks.size} tâches récurrentes non faites!"
         }
 
         val content = missedTasks.first().title
@@ -225,11 +225,11 @@ class NotificationHelper(private val context: Context) {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val content = "A faire: $todoCount | Terminees: $completedCount | En retard: $overdueCount"
+        val content = "A faire: $todoCount | Terminées: $completedCount | En retard: $overdueCount"
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID_UPCOMING)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Recap de vos taches")
+            .setContentTitle("Récap de vos tâches")
             .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)

@@ -61,7 +61,7 @@ fun FilterChips(
         )
 
         StyledFilterChip(
-            label = "Terminees",
+            label = "Terminées",
             selected = selectedFilter == TaskStatus.COMPLETED,
             color = StatusCompleted,
             onClick = { onFilterSelected(TaskStatus.COMPLETED) }

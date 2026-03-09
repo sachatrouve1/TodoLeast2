@@ -113,7 +113,7 @@ fun PhotoPicker(
             ) {
                 AsyncImage(
                     model = photoUri,
-                    contentDescription = "Photo de la tache",
+                    contentDescription = "Photo de la tâche",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )

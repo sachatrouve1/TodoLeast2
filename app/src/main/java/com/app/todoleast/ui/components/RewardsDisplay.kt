@@ -86,7 +86,7 @@ fun RewardsDialog(
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Recompenses",
+                    text = "Récompenses",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -110,7 +110,7 @@ fun RewardsDialog(
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${rewardsState.completedTasksCount} taches completees",
+                    text = "${rewardsState.completedTasksCount} tâches complétées",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -208,7 +208,7 @@ private fun AchievementCard(
 
             if (isUnlocked) {
                 Text(
-                    text = "Debloque",
+                    text = "Débloqué",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Medium
@@ -236,7 +236,7 @@ fun AchievementUnlockedDialog(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Succes debloque !",
+                    text = "Succès débloqué !",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold

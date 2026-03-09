@@ -161,7 +161,7 @@ fun TaskListScreen(
                         )
                         if (tasks.isNotEmpty()) {
                             Text(
-                                text = "${tasks.size} tache${if (tasks.size > 1) "s" else ""}",
+                                text = "${tasks.size} tâche${if (tasks.size > 1) "s" else ""}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -177,7 +177,7 @@ fun TaskListScreen(
                         IconButton(onClick = { showDeleteCompletedDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.DeleteSweep,
-                                contentDescription = "Supprimer les taches terminees",
+                                contentDescription = "Supprimer les tâches terminées",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -194,7 +194,7 @@ fun TaskListScreen(
                             onDismissRequest = { showMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Exporter les taches") },
+                                text = { Text("Exporter les tâches") },
                                 onClick = {
                                     showMenu = false
                                     val json = viewModel.exportTasksJson()
@@ -209,7 +209,7 @@ fun TaskListScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Importer des taches") },
+                                text = { Text("Importer des tâches") },
                                 onClick = {
                                     showMenu = false
                                     showImportDialog = true
@@ -240,7 +240,7 @@ fun TaskListScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Ajouter une tache",
+                    contentDescription = "Ajouter une tâche",
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -307,8 +307,8 @@ fun TaskListScreen(
         if (showDeleteCompletedDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteCompletedDialog = false },
-                title = { Text("Supprimer les taches terminees") },
-                text = { Text("Voulez-vous vraiment supprimer toutes les taches terminees ?") },
+                title = { Text("Supprimer les tâches terminées") },
+                text = { Text("Voulez-vous vraiment supprimer toutes les tâches terminées ?") },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -353,7 +353,7 @@ fun TaskListScreen(
                     showImportDialog = false
                     importText = ""
                 },
-                title = { Text("Importer des taches") },
+                title = { Text("Importer des tâches") },
                 text = {
                     Column {
                         Text(
@@ -431,14 +431,14 @@ private fun EmptyState(modifier: Modifier = Modifier) {
             }
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "Aucune tache",
+                text = "Aucune tâche",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Appuyez sur + pour creer\nvotre premiere tache",
+                text = "Appuyez sur + pour créer\nvotre première tâche",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -454,7 +454,7 @@ private fun EmptyFilterState(
 ) {
     val filterName = when (filter) {
         TaskStatus.TO_DO -> "a faire"
-        TaskStatus.COMPLETED -> "terminee"
+        TaskStatus.COMPLETED -> "terminée"
         TaskStatus.OVERDUE -> "en retard"
         null -> ""
     }
@@ -475,7 +475,7 @@ private fun EmptyFilterState(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Aucune tache $filterName",
+                text = "Aucune tâche $filterName",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

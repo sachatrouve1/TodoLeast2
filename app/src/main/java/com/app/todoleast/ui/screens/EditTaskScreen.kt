@@ -90,7 +90,7 @@ fun EditTaskScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Modifier la tache",
+                        text = "Modifier la tâche",
                         fontWeight = FontWeight.SemiBold
                     )
                 },
@@ -132,7 +132,7 @@ fun EditTaskScreen(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Titre *") },
-                placeholder = { Text("Entrez le titre de la tache") },
+                placeholder = { Text("Entrez le titre de la tâche") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -156,7 +156,7 @@ fun EditTaskScreen(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Description") },
-                placeholder = { Text("Ajoutez des details (optionnel)") },
+                placeholder = { Text("Ajoutez des détails (optionnel)") },
                 minLines = 3,
                 maxLines = 5,
                 modifier = Modifier.fillMaxWidth(),
@@ -173,7 +173,7 @@ fun EditTaskScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Repetition",
+                text = "Répétition",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -198,7 +198,7 @@ fun EditTaskScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Echeance (optionnel)",
+                    text = "Échéance (optionnel)",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -211,7 +211,7 @@ fun EditTaskScreen(
                     value = dueDate?.format(DateTimeFormatter.ofPattern("dd MMMM yyyy")) ?: "",
                     onValueChange = {},
                     label = { Text("Date limite") },
-                    placeholder = { Text("Selectionner une date") },
+                    placeholder = { Text("Sélectionner une date") },
                     readOnly = true,
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -253,7 +253,7 @@ fun EditTaskScreen(
                     value = dueTime?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: "",
                     onValueChange = {},
                     label = { Text("Heure limite") },
-                    placeholder = { Text("Selectionner une heure") },
+                    placeholder = { Text("Sélectionner une heure") },
                     readOnly = true,
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -292,7 +292,7 @@ fun EditTaskScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Priorite",
+                text = "Priorité",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -308,7 +308,7 @@ fun EditTaskScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Categorie",
+                text = "Catégorie",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -357,8 +357,8 @@ fun EditTaskScreen(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("Supprimer la tache") },
-            text = { Text("Voulez-vous vraiment supprimer cette tache ?") },
+            title = { Text("Supprimer la tâche") },
+            text = { Text("Voulez-vous vraiment supprimer cette tâche ?") },
             confirmButton = {
                 TextButton(
                     onClick = {

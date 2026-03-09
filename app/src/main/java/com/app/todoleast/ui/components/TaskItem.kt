@@ -157,7 +157,7 @@ fun TaskItem(
                 if (isCompleted) {
                     Icon(
                         imageVector = Icons.Filled.Check,
-                        contentDescription = "Terminee",
+                        contentDescription = "Terminée",
                         tint = Color.White,
                         modifier = Modifier
                             .size(16.dp)
@@ -247,7 +247,7 @@ fun TaskItem(
                 Spacer(modifier = Modifier.width(12.dp))
                 AsyncImage(
                     model = uri,
-                    contentDescription = "Photo de la tache",
+                    contentDescription = "Photo de la tâche",
                     modifier = Modifier
                         .size(56.dp)
                         .clip(RoundedCornerShape(12.dp))

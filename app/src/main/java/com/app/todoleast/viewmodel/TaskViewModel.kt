@@ -332,12 +332,12 @@ class TaskViewModel(
         val approaching = getTasksApproachingDueDate().size
 
         return buildString {
-            appendLine("Recap des taches:")
+            appendLine("Récap des tâches:")
             appendLine("- A faire: $todo")
-            appendLine("- Terminees: $completed")
+            appendLine("- Terminées: $completed")
             appendLine("- En retard: $overdue")
             if (approaching > 0) {
-                appendLine("- Arrivent a echeance: $approaching")
+                appendLine("- Arrivent a échéance: $approaching")
             }
         }
     }
