@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-    kotlin("kapt")
 }
 
 android {
@@ -58,10 +57,9 @@ dependencies {
     // Image loading
     implementation(libs.coil.compose)
 
-    // Room database
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
+    // DataStore for persistence
+    implementation(libs.datastore.preferences)
+    implementation(libs.gson)
 
     // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)

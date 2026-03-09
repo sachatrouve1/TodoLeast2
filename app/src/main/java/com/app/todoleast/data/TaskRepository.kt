@@ -1,32 +1,34 @@
 package com.app.todoleast.data
 
 import com.app.todoleast.model.Task
+import com.app.todoleast.model.TaskStatus
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 
-class TaskRepository(private val taskDao: TaskDao) {
+class TaskRepository(private val taskDataStore: TaskDataStore) {
 
-    val allTasks: Flow<List<Task>> = taskDao.getAllTasks().map { entities ->
-        entities.map { it.toTask() }
-    }
-
-    suspend fun getTaskById(taskId: String): Task? {
-        return taskDao.getTaskById(taskId)?.toTask()
-    }
+    val allTasks: Flow<List<Task>> = taskDataStore.tasks
 
     suspend fun insertTask(task: Task) {
-        taskDao.insertTask(TaskEntity.fromTask(task))
+        val current = taskDataStore.tasks.first()
+        taskDataStore.saveTasks(current + task)
     }
 
     suspend fun updateTask(task: Task) {
-        taskDao.updateTask(TaskEntity.fromTask(task))
+        val current = taskDataStore.tasks.first()
+        val updated = current.map { if (it.id == task.id) task else it }
+        taskDataStore.saveTasks(updated)
     }
 
     suspend fun deleteTask(taskId: String) {
-        taskDao.deleteTaskById(taskId)
+        val current = taskDataStore.tasks.first()
+        taskDataStore.saveTasks(current.filter { it.id != taskId })
     }
 
     suspend fun deleteCompletedTasks() {
-        taskDao.deleteCompletedNonPeriodicTasks()
+        val current = taskDataStore.tasks.first()
+        taskDataStore.saveTasks(current.filter {
+            it.status != TaskStatus.COMPLETED || it.isPeriodic()
+        })
     }
 }
