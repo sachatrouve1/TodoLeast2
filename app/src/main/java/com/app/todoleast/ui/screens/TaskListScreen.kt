@@ -173,14 +173,12 @@ fun TaskListScreen(
                         points = rewardsState.totalPoints,
                         onClick = { showRewardsDialog = true }
                     )
-                    if (hasCompletedTasks) {
-                        IconButton(onClick = { showDeleteCompletedDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Default.DeleteSweep,
-                                contentDescription = "Supprimer les tâches terminées",
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
+                    IconButton(onClick = { showDeleteCompletedDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteSweep,
+                            contentDescription = "Supprimer les tâches terminées",
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                     Box {
                         IconButton(onClick = { showMenu = true }) {
@@ -305,29 +303,42 @@ fun TaskListScreen(
 
         // Delete completed tasks confirmation dialog
         if (showDeleteCompletedDialog) {
-            AlertDialog(
-                onDismissRequest = { showDeleteCompletedDialog = false },
-                title = { Text("Supprimer les tâches terminées") },
-                text = { Text("Voulez-vous vraiment supprimer toutes les tâches terminées ?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            viewModel.deleteCompletedTasks()
-                            showDeleteCompletedDialog = false
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("Supprimer")
+            if (hasCompletedTasks) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteCompletedDialog = false },
+                    title = { Text("Supprimer les tâches terminées") },
+                    text = { Text("Voulez-vous vraiment supprimer toutes les tâches terminées ?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                viewModel.deleteCompletedTasks()
+                                showDeleteCompletedDialog = false
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Supprimer")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteCompletedDialog = false }) {
+                            Text("Annuler")
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteCompletedDialog = false }) {
-                        Text("Annuler")
+                )
+            } else {
+                AlertDialog(
+                    onDismissRequest = { showDeleteCompletedDialog = false },
+                    title = { Text("Aucune tâche à supprimer") },
+                    text = { Text("Il n'y a pas de tâche terminée à supprimer.") },
+                    confirmButton = {
+                        TextButton(onClick = { showDeleteCompletedDialog = false }) {
+                            Text("OK")
+                        }
                     }
-                }
-            )
+                )
+            }
         }
 
         // Rewards dialog
