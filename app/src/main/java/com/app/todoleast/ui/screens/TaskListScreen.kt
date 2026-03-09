@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
 import com.app.todoleast.ui.components.AchievementUnlockedDialog
@@ -68,11 +70,20 @@ fun TaskListScreen(
     val filteredTasks = remember(tasks, selectedFilter) {
         viewModel.getFilteredTasks()
     }
+    val dailyTasks = remember(tasks) {
+        viewModel.getFilteredPeriodicTasks(Repeat.DAILY)
+    }
+    val weeklyTasks = remember(tasks) {
+        viewModel.getFilteredPeriodicTasks(Repeat.WEEKLY)
+    }
+    val monthlyTasks = remember(tasks) {
+        viewModel.getFilteredPeriodicTasks(Repeat.MONTHLY)
+    }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var showDeleteCompletedDialog by remember { mutableStateOf(false) }
     var showRewardsDialog by remember { mutableStateOf(false) }
     val hasCompletedTasks = remember(tasks) {
-        tasks.any { it.status == TaskStatus.COMPLETED }
+        tasks.any { it.status == TaskStatus.COMPLETED && !it.isPeriodic() }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -165,12 +176,15 @@ fun TaskListScreen(
             }
 
             AnimatedVisibility(
-                visible = filteredTasks.isNotEmpty(),
+                visible = filteredTasks.isNotEmpty() || dailyTasks.isNotEmpty() || weeklyTasks.isNotEmpty() || monthlyTasks.isNotEmpty(),
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                TaskList(
-                    tasks = filteredTasks,
+                TaskListWithSections(
+                    regularTasks = filteredTasks,
+                    dailyTasks = dailyTasks,
+                    weeklyTasks = weeklyTasks,
+                    monthlyTasks = monthlyTasks,
                     onTaskClick = onTaskClick,
                     onToggleTaskCompletion = onToggleTaskCompletion
                 )
@@ -302,8 +316,11 @@ private fun EmptyFilterState(
 }
 
 @Composable
-private fun TaskList(
-    tasks: List<Task>,
+private fun TaskListWithSections(
+    regularTasks: List<Task>,
+    dailyTasks: List<Task>,
+    weeklyTasks: List<Task>,
+    monthlyTasks: List<Task>,
     onTaskClick: (String) -> Unit,
     onToggleTaskCompletion: (String, Offset) -> Unit,
     modifier: Modifier = Modifier
@@ -313,20 +330,101 @@ private fun TaskList(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(
-            items = tasks,
-            key = { it.id }
-        ) { task ->
-            TaskItem(
-                task = task,
-                onTaskClick = { onTaskClick(task.id) },
-                onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
-            )
+        // Daily tasks section
+        if (dailyTasks.isNotEmpty()) {
+            item {
+                SectionHeader(title = "Quotidien", emoji = "📅")
+            }
+            items(
+                items = dailyTasks,
+                key = { "daily_${it.id}" }
+            ) { task ->
+                TaskItem(
+                    task = task,
+                    onTaskClick = { onTaskClick(task.id) },
+                    onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                )
+            }
+        }
+
+        // Weekly tasks section
+        if (weeklyTasks.isNotEmpty()) {
+            item {
+                SectionHeader(title = "Hebdomadaire", emoji = "📆")
+            }
+            items(
+                items = weeklyTasks,
+                key = { "weekly_${it.id}" }
+            ) { task ->
+                TaskItem(
+                    task = task,
+                    onTaskClick = { onTaskClick(task.id) },
+                    onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                )
+            }
+        }
+
+        // Monthly tasks section
+        if (monthlyTasks.isNotEmpty()) {
+            item {
+                SectionHeader(title = "Mensuel", emoji = "🗓️")
+            }
+            items(
+                items = monthlyTasks,
+                key = { "monthly_${it.id}" }
+            ) { task ->
+                TaskItem(
+                    task = task,
+                    onTaskClick = { onTaskClick(task.id) },
+                    onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                )
+            }
+        }
+
+        // Regular tasks section
+        if (regularTasks.isNotEmpty()) {
+            item {
+                SectionHeader(title = "Taches", emoji = "📝")
+            }
+            items(
+                items = regularTasks,
+                key = { "regular_${it.id}" }
+            ) { task ->
+                TaskItem(
+                    task = task,
+                    onTaskClick = { onTaskClick(task.id) },
+                    onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                )
+            }
         }
 
         // Bottom spacing for FAB
         item {
             Spacer(modifier = Modifier.height(72.dp))
         }
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    emoji: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = emoji,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
