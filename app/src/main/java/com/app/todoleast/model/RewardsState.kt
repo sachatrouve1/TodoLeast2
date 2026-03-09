@@ -4,7 +4,8 @@ data class RewardsState(
     val totalPoints: Int = 0,
     val completedTasksCount: Int = 0,
     val unlockedAchievements: Set<Achievement> = emptySet(),
-    val newlyUnlockedAchievement: Achievement? = null
+    val newlyUnlockedAchievement: Achievement? = null,
+    val rewardedTaskIds: Set<String> = emptySet()
 ) {
     fun getPointsForPriority(priority: Priority): Int {
         return when (priority) {

@@ -46,6 +46,9 @@ class TaskViewModel : ViewModel() {
     }
 
     private fun awardPoints(task: Task) {
+        // Ne pas recompenser si la tache a deja ete recompensee
+        if (task.id in _rewardsState.value.rewardedTaskIds) return
+
         val points = _rewardsState.value.getPointsForPriority(task.priority)
         val newCount = _rewardsState.value.completedTasksCount + 1
         val newAchievement = _rewardsState.value.checkNewAchievements(newCount)
@@ -59,7 +62,8 @@ class TaskViewModel : ViewModel() {
                 } else {
                     current.unlockedAchievements
                 },
-                newlyUnlockedAchievement = newAchievement
+                newlyUnlockedAchievement = newAchievement,
+                rewardedTaskIds = current.rewardedTaskIds + task.id
             )
         }
     }
