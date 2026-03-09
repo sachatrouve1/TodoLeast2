@@ -23,7 +23,8 @@ import java.time.Duration
 @Composable
 fun CountdownTimer(
     remainingDuration: Duration?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isCompleted: Boolean = false
 ) {
     var remainingSeconds by remember(remainingDuration) {
         mutableLongStateOf(remainingDuration?.seconds ?: 0L)
@@ -37,6 +38,12 @@ fun CountdownTimer(
     }
 
     val formattedTime = formatDuration(remainingSeconds)
+    val timerColor = when {
+        isCompleted -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        remainingSeconds < 3600 -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.primary
+    }
+    val prefix = if (isCompleted) "Reset dans " else ""
 
     Row(
         modifier = modifier.padding(top = 4.dp),
@@ -46,20 +53,12 @@ fun CountdownTimer(
             imageVector = Icons.Outlined.Timer,
             contentDescription = null,
             modifier = Modifier.size(14.dp),
-            tint = if (remainingSeconds < 3600) {
-                MaterialTheme.colorScheme.error
-            } else {
-                MaterialTheme.colorScheme.primary
-            }
+            tint = timerColor
         )
         Text(
-            text = formattedTime,
+            text = prefix + formattedTime,
             style = MaterialTheme.typography.labelMedium,
-            color = if (remainingSeconds < 3600) {
-                MaterialTheme.colorScheme.error
-            } else {
-                MaterialTheme.colorScheme.primary
-            },
+            color = timerColor,
             modifier = Modifier.padding(start = 4.dp)
         )
     }

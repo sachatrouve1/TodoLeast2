@@ -141,9 +141,10 @@ fun TaskItem(
 
                 // Date/time info for regular tasks, countdown for periodic tasks
                 if (task.isPeriodic()) {
-                    if (!isCompleted) {
-                        CountdownTimer(remainingDuration = task.getRemainingTime())
-                    }
+                    CountdownTimer(
+                        remainingDuration = task.getRemainingTime(),
+                        isCompleted = isCompleted
+                    )
                 } else if (task.dueDate != null || task.dueTime != null) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(

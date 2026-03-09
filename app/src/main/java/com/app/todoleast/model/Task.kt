@@ -39,20 +39,38 @@ data class Task(
 
     fun getRemainingTime(): Duration? {
         if (!isPeriodic()) return null
-        val startTime = periodStartedAt ?: return null
-
-        val periodEnd = when (repeat) {
-            Repeat.DAILY -> startTime.plusDays(1)
-            Repeat.WEEKLY -> startTime.plusWeeks(1)
-            Repeat.MONTHLY -> startTime.plusMonths(1)
-            Repeat.NONE -> return null
-        }
 
         val now = LocalDateTime.now()
-        return if (now.isBefore(periodEnd)) {
-            Duration.between(now, periodEnd)
+        val nextReset = getNextResetTime() ?: return null
+
+        return if (now.isBefore(nextReset)) {
+            Duration.between(now, nextReset)
         } else {
             Duration.ZERO
+        }
+    }
+
+    fun getNextResetTime(): LocalDateTime? {
+        if (!isPeriodic()) return null
+
+        val now = LocalDateTime.now()
+
+        return when (repeat) {
+            Repeat.DAILY -> {
+                // Tomorrow at midnight
+                LocalDate.now().plusDays(1).atStartOfDay()
+            }
+            Repeat.WEEKLY -> {
+                // Next Monday at midnight
+                val dayOfWeek = now.dayOfWeek.value // Monday = 1, Sunday = 7
+                val daysUntilMonday = if (dayOfWeek == 1) 7 else (8 - dayOfWeek)
+                now.toLocalDate().plusDays(daysUntilMonday.toLong()).atStartOfDay()
+            }
+            Repeat.MONTHLY -> {
+                // 1st of next month at midnight
+                now.toLocalDate().plusMonths(1).withDayOfMonth(1).atStartOfDay()
+            }
+            Repeat.NONE -> null
         }
     }
 
