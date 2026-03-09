@@ -323,44 +323,47 @@ fun TaskItem(
                     }
                 }
 
-                // Photo and menu row
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                // Photo and menu row - centered vertically
+                Box(
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
-                    // Photo thumbnail (clickable to view full screen)
-                    task.photoUri?.let { uri ->
-                        AsyncImage(
-                            model = uri,
-                            contentDescription = "Photo de la tâche",
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .border(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .clickable { showPhotoViewer = true },
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        // Photo thumbnail (clickable to view full screen)
+                        task.photoUri?.let { uri ->
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = "Photo de la tâche",
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .border(
+                                        width = 1.dp,
+                                        color = MaterialTheme.colorScheme.outlineVariant,
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .clickable { showPhotoViewer = true },
+                                contentScale = ContentScale.Crop
+                            )
+                        }
 
-                    // Menu button (only show when not in selection mode)
-                    if (!isSelectionMode) {
-                        Box {
-                            IconButton(
-                                onClick = { showMenu = true },
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = "Options",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-                            DropdownMenu(
+                        // Menu button (only show when not in selection mode)
+                        if (!isSelectionMode) {
+                            Box {
+                                IconButton(
+                                    onClick = { showMenu = true },
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = "Options",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                                DropdownMenu(
                                 expanded = showMenu,
                                 onDismissRequest = { showMenu = false }
                             ) {
@@ -398,6 +401,7 @@ fun TaskItem(
                                 )
                             }
                         }
+                    }
                     }
                 }
             }
