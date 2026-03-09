@@ -5,22 +5,31 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Modern rounded card -->
+    <!-- Outer circle ring -->
+    <path
+        android:pathData="M54,24 A30,30 0 1,1 53.99,24"
+        android:strokeWidth="3"
+        android:strokeColor="#FFFFFF"
+        android:strokeAlpha="0.3"
+        android:fillColor="@android:color/transparent" />
+
+    <!-- Inner filled circle -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M30,34 L78,34 Q82,34 82,38 L82,70 Q82,74 78,74 L30,74 Q26,74 26,70 L26,38 Q26,34 30,34 Z" />
+        android:pathData="M54,30 A24,24 0 1,1 53.99,30" />
 
-    <!-- Bold elegant checkmark -->
+    <!-- Modern checkmark -->
     <path
-        android:pathData="M40,54 L50,64 L68,44"
-        android:strokeWidth="5"
-        android:strokeColor="#0D7377"
+        android:pathData="M43,54 L51,62 L67,44"
+        android:strokeWidth="4.5"
+        android:strokeColor="#14919B"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
 
-    <!-- Subtle shadow under card -->
+    <!-- Subtle inner shadow on circle -->
     <path
         android:fillColor="#000000"
-        android:fillAlpha="0.15"
-        android:pathData="M32,76 L76,76 Q80,76 80,74 L80,72 Q80,76 76,76 L32,76 Q28,76 28,74 L28,72 Q28,76 32,76 Z" />
+        android:fillAlpha="0.08"
+        android:pathData="M54,30 A24,24 0 0,1 78,54 L54,54 Z" />
 </vector>
