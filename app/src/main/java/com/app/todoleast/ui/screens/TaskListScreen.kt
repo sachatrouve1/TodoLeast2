@@ -45,8 +45,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
+import com.app.todoleast.ui.components.AchievementUnlockedDialog
 import com.app.todoleast.ui.components.CelebrationEffect
 import com.app.todoleast.ui.components.FilterChips
+import com.app.todoleast.ui.components.PointsBadge
+import com.app.todoleast.ui.components.RewardsDialog
 import com.app.todoleast.ui.components.TaskItem
 import com.app.todoleast.viewmodel.TaskViewModel
 
@@ -61,11 +64,13 @@ fun TaskListScreen(
     val tasks by viewModel.tasks.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
     val celebrationState by viewModel.celebrationState.collectAsState()
+    val rewardsState by viewModel.rewardsState.collectAsState()
     val filteredTasks = remember(tasks, selectedFilter) {
         viewModel.getFilteredTasks()
     }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var showDeleteCompletedDialog by remember { mutableStateOf(false) }
+    var showRewardsDialog by remember { mutableStateOf(false) }
     val hasCompletedTasks = remember(tasks) {
         tasks.any { it.status == TaskStatus.COMPLETED }
     }
@@ -92,6 +97,10 @@ fun TaskListScreen(
                     }
                 },
                 actions = {
+                    PointsBadge(
+                        points = rewardsState.totalPoints,
+                        onClick = { showRewardsDialog = true }
+                    )
                     if (hasCompletedTasks) {
                         IconButton(onClick = { showDeleteCompletedDialog = true }) {
                             Icon(
@@ -200,6 +209,22 @@ fun TaskListScreen(
                         Text("Annuler")
                     }
                 }
+            )
+        }
+
+        // Rewards dialog
+        if (showRewardsDialog) {
+            RewardsDialog(
+                rewardsState = rewardsState,
+                onDismiss = { showRewardsDialog = false }
+            )
+        }
+
+        // Achievement unlocked dialog
+        rewardsState.newlyUnlockedAchievement?.let { achievement ->
+            AchievementUnlockedDialog(
+                achievement = achievement,
+                onDismiss = { viewModel.clearNewAchievement() }
             )
         }
     }
