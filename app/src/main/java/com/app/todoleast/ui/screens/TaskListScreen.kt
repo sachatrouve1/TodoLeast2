@@ -115,18 +115,13 @@ fun TaskListScreen(
         }
     }
 
-    val filteredTasks = remember(tasks, selectedFilter, refreshTick) {
-        viewModel.getFilteredTasks()
-    }
-    val dailyTasks = remember(tasks, selectedFilter, refreshTick) {
-        viewModel.getFilteredPeriodicTasks(Repeat.DAILY, selectedFilter)
-    }
-    val weeklyTasks = remember(tasks, selectedFilter, refreshTick) {
-        viewModel.getFilteredPeriodicTasks(Repeat.WEEKLY, selectedFilter)
-    }
-    val monthlyTasks = remember(tasks, selectedFilter, refreshTick) {
-        viewModel.getFilteredPeriodicTasks(Repeat.MONTHLY, selectedFilter)
-    }
+    // Compute filtered tasks (refreshTick forces recomposition for overdue updates)
+    @Suppress("UNUSED_EXPRESSION")
+    refreshTick // Read to trigger recomposition
+    val filteredTasks = viewModel.getFilteredTasks()
+    val dailyTasks = viewModel.getFilteredPeriodicTasks(Repeat.DAILY, selectedFilter)
+    val weeklyTasks = viewModel.getFilteredPeriodicTasks(Repeat.WEEKLY, selectedFilter)
+    val monthlyTasks = viewModel.getFilteredPeriodicTasks(Repeat.MONTHLY, selectedFilter)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var showDeleteCompletedDialog by remember { mutableStateOf(false) }
     var showRewardsDialog by remember { mutableStateOf(false) }
