@@ -32,11 +32,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.app.todoleast.service.NotificationHelper
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -84,6 +88,35 @@ fun TaskListScreen(
     var showRewardsDialog by remember { mutableStateOf(false) }
     val hasCompletedTasks = remember(tasks) {
         tasks.any { it.status == TaskStatus.COMPLETED && !it.isPeriodic() }
+    }
+
+    // Notification check
+    val context = LocalContext.current
+    LaunchedEffect(tasks) {
+        val notificationHelper = NotificationHelper(context)
+
+        while (true) {
+            // Check for overdue tasks
+            val overdueTasks = viewModel.getOverdueTasks()
+            if (overdueTasks.isNotEmpty()) {
+                notificationHelper.showOverdueNotification(overdueTasks)
+            }
+
+            // Check for tasks due soon (within 30 minutes)
+            val dueSoonTasks = viewModel.getTasksDueSoon(30)
+            if (dueSoonTasks.isNotEmpty()) {
+                notificationHelper.showDueSoonNotification(dueSoonTasks)
+            }
+
+            // Check for uncompleted periodic tasks
+            val missedPeriodicTasks = viewModel.getUncompletedPeriodicTasks()
+            if (missedPeriodicTasks.isNotEmpty()) {
+                notificationHelper.showMissedPeriodicNotification(missedPeriodicTasks)
+            }
+
+            // Check every minute
+            delay(60_000L)
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

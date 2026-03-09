@@ -263,6 +263,29 @@ class TaskViewModel(
         }
     }
 
+    fun getTasksDueSoon(minutesBefore: Int = 30): List<Task> {
+        val now = LocalDateTime.now()
+        val threshold = now.plusMinutes(minutesBefore.toLong())
+        return tasks.value.filter { task ->
+            task.status != TaskStatus.COMPLETED &&
+            !task.isPeriodic() &&
+            task.dueDate != null &&
+            task.dueTime != null &&
+            run {
+                val taskDateTime = LocalDateTime.of(task.dueDate, task.dueTime)
+                taskDateTime.isAfter(now) && taskDateTime.isBefore(threshold)
+            }
+        }
+    }
+
+    fun getUncompletedPeriodicTasks(): List<Task> {
+        return tasks.value.filter { task ->
+            task.isPeriodic() &&
+            task.status != TaskStatus.COMPLETED &&
+            task.isPeriodExpired()
+        }
+    }
+
     fun getTasksSummary(): String {
         val allTasks = tasks.value
         val todo = allTasks.count { it.getEffectiveStatus() == TaskStatus.TO_DO }
