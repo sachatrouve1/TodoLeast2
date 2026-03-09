@@ -79,7 +79,8 @@ class TaskViewModel : ViewModel() {
         dueDate: LocalDate? = null,
         dueTime: LocalTime? = null,
         repeat: Repeat = Repeat.NONE,
-        priority: Priority = Priority.MEDIUM
+        priority: Priority = Priority.MEDIUM,
+        photoUri: String? = null
     ) {
         if (title.isBlank()) return
 
@@ -92,7 +93,8 @@ class TaskViewModel : ViewModel() {
             status = TaskStatus.TO_DO,
             repeat = repeat,
             priority = priority,
-            periodStartedAt = if (isPeriodic) LocalDateTime.now() else null
+            periodStartedAt = if (isPeriodic) LocalDateTime.now() else null,
+            photoUri = photoUri
         )
 
         _tasks.update { currentTasks ->
@@ -154,7 +156,8 @@ class TaskViewModel : ViewModel() {
         dueDate: LocalDate?,
         dueTime: LocalTime?,
         repeat: Repeat = Repeat.NONE,
-        priority: Priority = Priority.MEDIUM
+        priority: Priority = Priority.MEDIUM,
+        photoUri: String? = null
     ) {
         if (title.isBlank()) return
 
@@ -176,7 +179,8 @@ class TaskViewModel : ViewModel() {
                             task.periodStartedAt
                         } else {
                             null
-                        }
+                        },
+                        photoUri = photoUri
                     )
                 } else {
                     task
