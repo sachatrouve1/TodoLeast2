@@ -158,6 +158,14 @@ class TaskViewModel(
         }
     }
 
+    fun deleteTasks(taskIds: Set<String>) {
+        viewModelScope.launch {
+            taskIds.forEach { taskId ->
+                repository.deleteTask(taskId)
+            }
+        }
+    }
+
     fun deleteCompletedTasks() {
         viewModelScope.launch {
             repository.deleteCompletedTasks()

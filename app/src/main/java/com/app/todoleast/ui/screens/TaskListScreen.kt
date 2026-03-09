@@ -44,6 +44,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -213,13 +214,13 @@ fun TaskListScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             if (isSelectionMode) {
-                // Selection mode top bar
-                LargeTopAppBar(
+                // Selection mode top bar (compact)
+                TopAppBar(
                     title = {
                         Text(
                             text = "${selectedTaskIds.size} sélectionnée${if (selectedTaskIds.size > 1) "s" else ""}",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold
                         )
                     },
                     navigationIcon = {
@@ -248,11 +249,9 @@ fun TaskListScreen(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.largeTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    scrollBehavior = scrollBehavior
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 )
             } else {
                 // Normal top bar
@@ -578,9 +577,7 @@ fun TaskListScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            selectedTaskIds.forEach { taskId ->
-                                viewModel.deleteTask(taskId)
-                            }
+                            viewModel.deleteTasks(selectedTaskIds)
                             selectedTaskIds = emptySet()
                             isSelectionMode = false
                             showDeleteSelectedDialog = false
