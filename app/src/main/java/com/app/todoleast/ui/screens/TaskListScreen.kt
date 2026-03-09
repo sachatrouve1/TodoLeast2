@@ -165,7 +165,7 @@ fun TaskListScreen(
             }
 
             AnimatedVisibility(
-                visible = tasks.isNotEmpty() && filteredTasks.isEmpty(),
+                visible = tasks.isNotEmpty() && filteredTasks.isEmpty() && dailyTasks.isEmpty() && weeklyTasks.isEmpty() && monthlyTasks.isEmpty(),
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -176,7 +176,7 @@ fun TaskListScreen(
             }
 
             AnimatedVisibility(
-                visible = filteredTasks.isNotEmpty() || dailyTasks.isNotEmpty() || weeklyTasks.isNotEmpty() || monthlyTasks.isNotEmpty(),
+                visible = tasks.isNotEmpty(),
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
