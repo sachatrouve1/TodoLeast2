@@ -52,7 +52,14 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.app.todoleast.service.NotificationHelper
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.ContentPaste
+import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material3.HorizontalDivider
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -118,8 +125,45 @@ fun TaskListScreen(
         tasks.any { it.status == TaskStatus.COMPLETED && !it.isPeriodic() }
     }
 
-    // Notification check - tracking is done in ViewModel to persist across navigation
     val context = LocalContext.current
+
+    // File export launcher
+    val exportFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let {
+            try {
+                val json = viewModel.exportTasksJson()
+                context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                    outputStream.write(json.toByteArray())
+                }
+                Toast.makeText(context, "Tâches exportées dans le fichier", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "Erreur lors de l'exportation", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // File import launcher
+    val importFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            try {
+                val json = context.contentResolver.openInputStream(it)?.bufferedReader()?.readText() ?: ""
+                val success = viewModel.importTasksJson(json)
+                if (success) {
+                    Toast.makeText(context, "Tâches importées avec succès", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Erreur: fichier JSON invalide", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Erreur lors de la lecture du fichier", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // Notification check - tracking is done in ViewModel to persist across navigation
     LaunchedEffect(Unit) {
         val notificationHelper = NotificationHelper(context)
 
@@ -191,30 +235,59 @@ fun TaskListScreen(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
+                            // Export section
                             DropdownMenuItem(
-                                text = { Text("Exporter les tâches") },
+                                text = { Text("Exporter vers presse-papiers") },
                                 onClick = {
                                     showMenu = false
                                     val json = viewModel.exportTasksJson()
                                     clipboardManager.setText(AnnotatedString(json))
-                                    Toast.makeText(context, "Taches copiees dans le presse-papiers", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Tâches copiées dans le presse-papiers", Toast.LENGTH_SHORT).show()
                                 },
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = Icons.Outlined.FileUpload,
+                                        imageVector = Icons.Outlined.ContentCopy,
                                         contentDescription = null
                                     )
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Importer des tâches") },
+                                text = { Text("Exporter vers fichier") },
+                                onClick = {
+                                    showMenu = false
+                                    exportFileLauncher.launch("todoleast_export.json")
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Save,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            // Import section
+                            DropdownMenuItem(
+                                text = { Text("Importer depuis presse-papiers") },
                                 onClick = {
                                     showMenu = false
                                     showImportDialog = true
                                 },
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = Icons.Outlined.FileDownload,
+                                        imageVector = Icons.Outlined.ContentPaste,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Importer depuis fichier") },
+                                onClick = {
+                                    showMenu = false
+                                    importFileLauncher.launch(arrayOf("application/json", "*/*"))
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.FolderOpen,
                                         contentDescription = null
                                     )
                                 }
