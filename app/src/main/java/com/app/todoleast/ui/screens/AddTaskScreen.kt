@@ -152,100 +152,7 @@ fun AddTaskScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Echeance (optionnel)",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Date picker button
-            OutlinedTextField(
-                value = dueDate?.format(DateTimeFormatter.ofPattern("dd MMMM yyyy")) ?: "",
-                onValueChange = {},
-                label = { Text("Date limite") },
-                placeholder = { Text("Selectionner une date") },
-                readOnly = true,
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.CalendarToday,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                },
-                trailingIcon = {
-                    if (dueDate != null) {
-                        TextButton(onClick = { dueDate = null }) {
-                            Text("Effacer")
-                        }
-                    }
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                ),
-                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    .also { interactionSource ->
-                        androidx.compose.runtime.LaunchedEffect(interactionSource) {
-                            interactionSource.interactions.collect {
-                                if (it is androidx.compose.foundation.interaction.PressInteraction.Release) {
-                                    showDatePicker = true
-                                }
-                            }
-                        }
-                    }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Time picker button
-            OutlinedTextField(
-                value = dueTime?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: "",
-                onValueChange = {},
-                label = { Text("Heure limite") },
-                placeholder = { Text("Selectionner une heure") },
-                readOnly = true,
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Schedule,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                },
-                trailingIcon = {
-                    if (dueTime != null) {
-                        TextButton(onClick = { dueTime = null }) {
-                            Text("Effacer")
-                        }
-                    }
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                ),
-                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    .also { interactionSource ->
-                        androidx.compose.runtime.LaunchedEffect(interactionSource) {
-                            interactionSource.interactions.collect {
-                                if (it is androidx.compose.foundation.interaction.PressInteraction.Release) {
-                                    showTimePicker = true
-                                }
-                            }
-                        }
-                    }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Repetition (optionnel)",
+                text = "Repetition",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -255,8 +162,111 @@ fun AddTaskScreen(
 
             RepeatSelector(
                 selectedRepeat = repeat,
-                onRepeatSelected = { repeat = it }
+                onRepeatSelected = {
+                    repeat = it
+                    // Clear date/time when selecting periodic
+                    if (it != Repeat.NONE) {
+                        dueDate = null
+                        dueTime = null
+                    }
+                }
             )
+
+            // Only show date/time pickers for non-periodic tasks
+            if (repeat == Repeat.NONE) {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Echeance (optionnel)",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Date picker button
+                OutlinedTextField(
+                    value = dueDate?.format(DateTimeFormatter.ofPattern("dd MMMM yyyy")) ?: "",
+                    onValueChange = {},
+                    label = { Text("Date limite") },
+                    placeholder = { Text("Selectionner une date") },
+                    readOnly = true,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarToday,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    trailingIcon = {
+                        if (dueDate != null) {
+                            TextButton(onClick = { dueDate = null }) {
+                                Text("Effacer")
+                            }
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    ),
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        .also { interactionSource ->
+                            androidx.compose.runtime.LaunchedEffect(interactionSource) {
+                                interactionSource.interactions.collect {
+                                    if (it is androidx.compose.foundation.interaction.PressInteraction.Release) {
+                                        showDatePicker = true
+                                    }
+                                }
+                            }
+                        }
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Time picker button
+                OutlinedTextField(
+                    value = dueTime?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: "",
+                    onValueChange = {},
+                    label = { Text("Heure limite") },
+                    placeholder = { Text("Selectionner une heure") },
+                    readOnly = true,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Schedule,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    trailingIcon = {
+                        if (dueTime != null) {
+                            TextButton(onClick = { dueTime = null }) {
+                                Text("Effacer")
+                            }
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    ),
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        .also { interactionSource ->
+                            androidx.compose.runtime.LaunchedEffect(interactionSource) {
+                                interactionSource.interactions.collect {
+                                    if (it is androidx.compose.foundation.interaction.PressInteraction.Release) {
+                                        showTimePicker = true
+                                    }
+                                }
+                            }
+                        }
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
