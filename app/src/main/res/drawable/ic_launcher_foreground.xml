@@ -5,42 +5,22 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Main checkbox circle -->
+    <!-- Modern rounded card -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,54m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0" />
+        android:pathData="M30,34 L78,34 Q82,34 82,38 L82,70 Q82,74 78,74 L30,74 Q26,74 26,70 L26,38 Q26,34 30,34 Z" />
 
-    <!-- Checkmark -->
+    <!-- Bold elegant checkmark -->
     <path
-        android:fillColor="#0D7377"
-        android:pathData="M46,54l6,6l12,-12"
-        android:strokeWidth="4"
+        android:pathData="M40,54 L50,64 L68,44"
+        android:strokeWidth="5"
         android:strokeColor="#0D7377"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
 
-    <!-- Small decorative task lines (representing a list) -->
+    <!-- Subtle shadow under card -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.9"
-        android:pathData="M34,72h40"
-        android:strokeWidth="3"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round" />
-
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.6"
-        android:pathData="M38,78h32"
-        android:strokeWidth="2.5"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round" />
-
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.3"
-        android:pathData="M42,84h24"
-        android:strokeWidth="2"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round" />
+        android:fillColor="#000000"
+        android:fillAlpha="0.15"
+        android:pathData="M32,76 L76,76 Q80,76 80,74 L80,72 Q80,76 76,76 L32,76 Q28,76 28,74 L28,72 Q28,76 32,76 Z" />
 </vector>
