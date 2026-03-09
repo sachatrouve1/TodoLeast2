@@ -47,6 +47,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
+import com.app.todoleast.ui.components.PhotoPicker
 import com.app.todoleast.ui.components.PrioritySelector
 import com.app.todoleast.ui.components.RepeatSelector
 import java.time.Instant
@@ -59,7 +60,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AddTaskScreen(
     onNavigateBack: () -> Unit,
-    onTaskCreated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat, priority: Priority) -> Unit
+    onTaskCreated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat, priority: Priority, photoUri: String?) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -67,6 +68,7 @@ fun AddTaskScreen(
     var dueTime by remember { mutableStateOf<LocalTime?>(null) }
     var repeat by remember { mutableStateOf(Repeat.NONE) }
     var priority by remember { mutableStateOf(Priority.MEDIUM) }
+    var photoUri by remember { mutableStateOf<String?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
@@ -284,12 +286,19 @@ fun AddTaskScreen(
                 onPrioritySelected = { priority = it }
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            PhotoPicker(
+                photoUri = photoUri,
+                onPhotoSelected = { photoUri = it }
+            )
+
             Spacer(modifier = Modifier.height(32.dp))
 
             // Create button
             Button(
                 onClick = {
-                    onTaskCreated(title, description, dueDate, dueTime, repeat, priority)
+                    onTaskCreated(title, description, dueDate, dueTime, repeat, priority, photoUri)
                     onNavigateBack()
                 },
                 enabled = isFormValid,

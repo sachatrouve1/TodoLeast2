@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.Task
+import com.app.todoleast.ui.components.PhotoPicker
 import com.app.todoleast.ui.components.PrioritySelector
 import com.app.todoleast.ui.components.RepeatSelector
 import java.time.Instant
@@ -64,7 +65,7 @@ import java.time.format.DateTimeFormatter
 fun EditTaskScreen(
     task: Task,
     onNavigateBack: () -> Unit,
-    onTaskUpdated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat, priority: Priority) -> Unit,
+    onTaskUpdated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat, priority: Priority, photoUri: String?) -> Unit,
     onDeleteTask: () -> Unit
 ) {
     var title by remember { mutableStateOf(task.title) }
@@ -73,6 +74,7 @@ fun EditTaskScreen(
     var dueTime by remember { mutableStateOf(task.dueTime) }
     var repeat by remember { mutableStateOf(task.repeat) }
     var priority by remember { mutableStateOf(task.priority) }
+    var photoUri by remember { mutableStateOf(task.photoUri) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -300,12 +302,19 @@ fun EditTaskScreen(
                 onPrioritySelected = { priority = it }
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            PhotoPicker(
+                photoUri = photoUri,
+                onPhotoSelected = { photoUri = it }
+            )
+
             Spacer(modifier = Modifier.height(32.dp))
 
             // Save button
             Button(
                 onClick = {
-                    onTaskUpdated(title, description, dueDate, dueTime, repeat, priority)
+                    onTaskUpdated(title, description, dueDate, dueTime, repeat, priority, photoUri)
                     onNavigateBack()
                 },
                 enabled = isFormValid,

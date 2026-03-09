@@ -49,14 +49,15 @@ fun NavGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onTaskCreated = { title, description, dueDate, dueTime, repeat, priority ->
+                onTaskCreated = { title, description, dueDate, dueTime, repeat, priority, photoUri ->
                     viewModel.addTask(
                         title = title,
                         description = description,
                         dueDate = dueDate,
                         dueTime = dueTime,
                         repeat = repeat,
-                        priority = priority
+                        priority = priority,
+                        photoUri = photoUri
                     )
                 }
             )
@@ -74,7 +75,7 @@ fun NavGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onTaskUpdated = { title, description, dueDate, dueTime, repeat, priority ->
+                onTaskUpdated = { title, description, dueDate, dueTime, repeat, priority, photoUri ->
                     viewModel.updateTask(
                         taskId = taskId,
                         title = title,
@@ -82,7 +83,8 @@ fun NavGraph(
                         dueDate = dueDate,
                         dueTime = dueTime,
                         repeat = repeat,
-                        priority = priority
+                        priority = priority,
+                        photoUri = photoUri
                     )
                 },
                 onDeleteTask = {
