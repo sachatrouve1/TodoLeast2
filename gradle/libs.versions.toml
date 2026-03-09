@@ -13,7 +13,6 @@ navigationCompose = "2.8.4"
 lifecycleRuntimeKtx = "2.8.7"
 coil = "2.5.0"
 room = "2.6.1"
-ksp = "2.2.10-1.0.31"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,4 +51,4 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
