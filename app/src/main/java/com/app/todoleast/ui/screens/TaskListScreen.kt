@@ -35,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -71,16 +72,26 @@ fun TaskListScreen(
     val selectedFilter by viewModel.selectedFilter.collectAsState()
     val celebrationState by viewModel.celebrationState.collectAsState()
     val rewardsState by viewModel.rewardsState.collectAsState()
-    val filteredTasks = remember(tasks, selectedFilter) {
+
+    // Tick every minute to refresh overdue status in real-time
+    var refreshTick by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000L) // Update every minute
+            refreshTick++
+        }
+    }
+
+    val filteredTasks = remember(tasks, selectedFilter, refreshTick) {
         viewModel.getFilteredTasks()
     }
-    val dailyTasks = remember(tasks, selectedFilter) {
+    val dailyTasks = remember(tasks, selectedFilter, refreshTick) {
         viewModel.getFilteredPeriodicTasks(Repeat.DAILY, selectedFilter)
     }
-    val weeklyTasks = remember(tasks, selectedFilter) {
+    val weeklyTasks = remember(tasks, selectedFilter, refreshTick) {
         viewModel.getFilteredPeriodicTasks(Repeat.WEEKLY, selectedFilter)
     }
-    val monthlyTasks = remember(tasks, selectedFilter) {
+    val monthlyTasks = remember(tasks, selectedFilter, refreshTick) {
         viewModel.getFilteredPeriodicTasks(Repeat.MONTHLY, selectedFilter)
     }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
