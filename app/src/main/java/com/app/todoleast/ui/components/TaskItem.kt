@@ -1,6 +1,10 @@
 package com.app.todoleast.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -13,31 +17,36 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,6 +55,9 @@ import com.app.todoleast.model.Category
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
+import com.app.todoleast.ui.theme.PriorityHigh
+import com.app.todoleast.ui.theme.PriorityLow
+import com.app.todoleast.ui.theme.PriorityMedium
 import com.app.todoleast.ui.theme.StatusCompleted
 import com.app.todoleast.ui.theme.StatusOverdue
 import com.app.todoleast.ui.theme.StatusToDo
@@ -60,34 +72,57 @@ fun TaskItem(
 ) {
     val effectiveStatus = task.getEffectiveStatus()
     val isCompleted = effectiveStatus == TaskStatus.COMPLETED
+
     val statusColor = when (effectiveStatus) {
         TaskStatus.TO_DO -> StatusToDo
         TaskStatus.COMPLETED -> StatusCompleted
         TaskStatus.OVERDUE -> StatusOverdue
     }
 
+    val priorityColor = when (task.priority) {
+        Priority.LOW -> PriorityLow
+        Priority.MEDIUM -> PriorityMedium
+        Priority.HIGH -> PriorityHigh
+    }
+
     var checkboxCenter by remember { mutableStateOf(Offset.Zero) }
+
+    val cardAlpha by animateFloatAsState(
+        targetValue = if (isCompleted) 0.7f else 1f,
+        animationSpec = tween(300),
+        label = "cardAlpha"
+    )
+
+    val checkScale by animateFloatAsState(
+        targetValue = if (isCompleted) 1f else 0f,
+        animationSpec = tween(200),
+        label = "checkScale"
+    )
 
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .shadow(
+                elevation = if (isCompleted) 1.dp else 4.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = priorityColor.copy(alpha = 0.15f)
+            )
             .clickable { onTaskClick() },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = cardAlpha)
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Completion checkbox
+            // Custom checkbox with animation
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(28.dp)
                     .onGloballyPositioned { coordinates ->
                         val bounds = coordinates.boundsInRoot()
                         checkboxCenter = Offset(
@@ -99,26 +134,48 @@ fun TaskItem(
                         detectTapGestures {
                             onToggleCompletion(checkboxCenter)
                         }
-                    },
+                    }
+                    .clip(CircleShape)
+                    .background(
+                        if (isCompleted) {
+                            Brush.linearGradient(
+                                colors = listOf(statusColor, statusColor.copy(alpha = 0.8f))
+                            )
+                        } else {
+                            Brush.linearGradient(
+                                colors = listOf(Color.Transparent, Color.Transparent)
+                            )
+                        }
+                    )
+                    .border(
+                        width = 2.dp,
+                        color = if (isCompleted) Color.Transparent else statusColor,
+                        shape = CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if (isCompleted) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
-                    contentDescription = if (isCompleted) "Marquer comme non fait" else "Marquer comme fait",
-                    tint = statusColor,
-                    modifier = Modifier.size(28.dp)
-                )
+                if (isCompleted) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = "Terminee",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .scale(checkScale)
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             Column(modifier = Modifier.weight(1f)) {
+                // Title
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = if (isCompleted)
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     else
                         MaterialTheme.colorScheme.onSurface,
                     textDecoration = if (isCompleted) TextDecoration.LineThrough else null,
@@ -126,13 +183,14 @@ fun TaskItem(
                     overflow = TextOverflow.Ellipsis
                 )
 
+                // Description
                 if (task.description.isNotBlank()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = task.description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                            alpha = if (isCompleted) 0.5f else 1f
+                            alpha = if (isCompleted) 0.4f else 0.8f
                         ),
                         textDecoration = if (isCompleted) TextDecoration.LineThrough else null,
                         maxLines = 2,
@@ -140,87 +198,64 @@ fun TaskItem(
                     )
                 }
 
-                // Date/time info for regular tasks, countdown for periodic tasks
+                // Date/time info or countdown
                 if (task.isPeriodic()) {
+                    Spacer(modifier = Modifier.height(10.dp))
                     CountdownTimer(
                         remainingDuration = task.getRemainingTime(),
                         isCompleted = isCompleted
                     )
                 } else if (task.dueDate != null || task.dueTime != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         task.dueDate?.let { date ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.CalendarToday,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                    tint = if (effectiveStatus == TaskStatus.OVERDUE)
-                                        StatusOverdue
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = date.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = if (effectiveStatus == TaskStatus.OVERDUE)
-                                        StatusOverdue
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            DateChip(
+                                icon = Icons.Outlined.CalendarToday,
+                                text = date.format(DateTimeFormatter.ofPattern("dd MMM")),
+                                isOverdue = effectiveStatus == TaskStatus.OVERDUE
+                            )
                         }
 
                         task.dueTime?.let { time ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Schedule,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = time.format(DateTimeFormatter.ofPattern("HH:mm")),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            DateChip(
+                                icon = Icons.Outlined.Schedule,
+                                text = time.format(DateTimeFormatter.ofPattern("HH:mm")),
+                                isOverdue = false
+                            )
                         }
                     }
                 }
 
-                // Status, priority and category badges
-                Spacer(modifier = Modifier.height(8.dp))
+                // Badges row
+                Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    StatusBadge(status = effectiveStatus)
-                    PriorityBadge(priority = task.priority)
+                    PriorityIndicator(priority = task.priority)
                     if (task.category != Category.NONE) {
-                        CategoryBadge(category = task.category)
+                        CategoryChip(category = task.category)
                     }
                 }
             }
 
             // Photo thumbnail
             task.photoUri?.let { uri ->
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 AsyncImage(
                     model = uri,
                     contentDescription = "Photo de la tache",
                     modifier = Modifier
-                        .size(60.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            shape = RoundedCornerShape(12.dp)
+                        ),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -229,70 +264,92 @@ fun TaskItem(
 }
 
 @Composable
-private fun StatusBadge(status: TaskStatus) {
-    val (text, color) = when (status) {
-        TaskStatus.TO_DO -> "A faire" to StatusToDo
-        TaskStatus.COMPLETED -> "Terminee" to StatusCompleted
-        TaskStatus.OVERDUE -> "En retard" to StatusOverdue
+private fun DateChip(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    isOverdue: Boolean
+) {
+    val color = if (isOverdue) StatusOverdue else MaterialTheme.colorScheme.onSurfaceVariant
+
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = if (isOverdue)
+            StatusOverdue.copy(alpha = 0.1f)
+        else
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(12.dp),
+                tint = color
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelSmall,
+                color = color,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+private fun PriorityIndicator(priority: Priority) {
+    val (label, color) = when (priority) {
+        Priority.LOW -> "Basse" to PriorityLow
+        Priority.MEDIUM -> "Moyenne" to PriorityMedium
+        Priority.HIGH -> "Haute" to PriorityHigh
     }
 
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(color.copy(alpha = 0.15f))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
+        // Priority dot
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(color)
+        )
         Text(
-            text = text,
+            text = label,
             style = MaterialTheme.typography.labelSmall,
             color = color,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
 
 @Composable
-private fun PriorityBadge(priority: Priority) {
-    val (text, color) = when (priority) {
-        Priority.LOW -> "Basse" to androidx.compose.ui.graphics.Color(0xFF4CAF50)
-        Priority.MEDIUM -> "Moyenne" to androidx.compose.ui.graphics.Color(0xFFFF9800)
-        Priority.HIGH -> "Haute" to androidx.compose.ui.graphics.Color(0xFFF44336)
-    }
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(color.copy(alpha = 0.15f))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+private fun CategoryChip(category: Category) {
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = color,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-@Composable
-private fun CategoryBadge(category: Category) {
-    val text = if (category.emoji.isNotEmpty()) {
-        "${category.emoji} ${category.label}"
-    } else {
-        category.label
-    }
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            fontWeight = FontWeight.Medium
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            if (category.emoji.isNotEmpty()) {
+                Text(
+                    text = category.emoji,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+            Text(
+                text = category.label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                fontWeight = FontWeight.Medium
+            )
+        }
     }
 }
