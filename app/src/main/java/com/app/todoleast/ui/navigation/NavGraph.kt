@@ -1,16 +1,20 @@
 package com.app.todoleast.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.app.todoleast.data.AppDatabase
+import com.app.todoleast.data.TaskRepository
 import com.app.todoleast.ui.screens.AddTaskScreen
 import com.app.todoleast.ui.screens.EditTaskScreen
 import com.app.todoleast.ui.screens.TaskListScreen
 import com.app.todoleast.viewmodel.TaskViewModel
+import com.app.todoleast.viewmodel.TaskViewModelFactory
 
 sealed class Screen(val route: String) {
     data object TaskList : Screen("task_list")
@@ -22,9 +26,13 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun NavGraph(
-    navController: NavHostController,
-    viewModel: TaskViewModel = viewModel()
+    navController: NavHostController
 ) {
+    val context = LocalContext.current
+    val database = AppDatabase.getDatabase(context)
+    val repository = TaskRepository(database.taskDao())
+    val viewModel: TaskViewModel = viewModel(factory = TaskViewModelFactory(repository))
+
     NavHost(
         navController = navController,
         startDestination = Screen.TaskList.route

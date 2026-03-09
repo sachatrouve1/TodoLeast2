@@ -2,16 +2,20 @@ package com.app.todoleast.viewmodel
 
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
-import com.app.todoleast.model.Achievement
+import androidx.lifecycle.viewModelScope
+import com.app.todoleast.data.TaskRepository
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.RewardsState
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -21,9 +25,9 @@ data class CelebrationState(
     val position: Offset = Offset.Zero
 )
 
-class TaskViewModel : ViewModel() {
-    private val _tasks = MutableStateFlow<List<Task>>(emptyList())
-    val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
+class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
+    val tasks: StateFlow<List<Task>> = repository.allTasks
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _selectedFilter = MutableStateFlow<TaskStatus?>(null)
     val selectedFilter: StateFlow<TaskStatus?> = _selectedFilter.asStateFlow()
@@ -47,7 +51,6 @@ class TaskViewModel : ViewModel() {
     }
 
     private fun awardPoints(task: Task) {
-        // Ne pas recompenser si la tache a deja ete recompensee
         if (task.id in _rewardsState.value.rewardedTaskIds) return
 
         val points = _rewardsState.value.getPointsForPriority(task.priority)
@@ -70,7 +73,7 @@ class TaskViewModel : ViewModel() {
     }
 
     fun getOverdueTasks(): List<Task> {
-        return _tasks.value.filter { it.getEffectiveStatus() == TaskStatus.OVERDUE }
+        return tasks.value.filter { it.getEffectiveStatus() == TaskStatus.OVERDUE }
     }
 
     fun addTask(
@@ -97,30 +100,28 @@ class TaskViewModel : ViewModel() {
             photoUri = photoUri
         )
 
-        _tasks.update { currentTasks ->
-            currentTasks + newTask
+        viewModelScope.launch {
+            repository.insertTask(newTask)
         }
     }
 
     fun deleteTask(taskId: String) {
-        _tasks.update { currentTasks ->
-            currentTasks.filter { it.id != taskId }
+        viewModelScope.launch {
+            repository.deleteTask(taskId)
         }
     }
 
     fun deleteCompletedTasks() {
-        _tasks.update { currentTasks ->
-            currentTasks.filter { it.status != TaskStatus.COMPLETED }
+        viewModelScope.launch {
+            repository.deleteCompletedTasks()
         }
     }
 
     fun getFilteredTasks(): List<Task> {
-        // Check and reset expired periodic tasks
         checkAndResetPeriodicTasks()
 
         val filter = _selectedFilter.value
-        // Only return non-periodic tasks in the main filtered list
-        val nonPeriodicTasks = _tasks.value.filter { !it.isPeriodic() }
+        val nonPeriodicTasks = tasks.value.filter { !it.isPeriodic() }
         val filteredTasks = if (filter == null) {
             nonPeriodicTasks
         } else {
@@ -136,7 +137,7 @@ class TaskViewModel : ViewModel() {
     }
 
     fun getFilteredPeriodicTasks(repeat: Repeat, filter: TaskStatus? = null): List<Task> {
-        return _tasks.value
+        return tasks.value
             .filter { it.repeat == repeat }
             .filter { filter == null || it.getEffectiveStatus() == filter }
             .sortedWith(
@@ -146,7 +147,7 @@ class TaskViewModel : ViewModel() {
     }
 
     fun getTaskById(taskId: String): Task? {
-        return _tasks.value.find { it.id == taskId }
+        return tasks.value.find { it.id == taskId }
     }
 
     fun updateTask(
@@ -161,59 +162,46 @@ class TaskViewModel : ViewModel() {
     ) {
         if (title.isBlank()) return
 
-        _tasks.update { currentTasks ->
-            currentTasks.map { task ->
-                if (task.id == taskId) {
-                    val isPeriodic = repeat != Repeat.NONE
-                    val wasPeriodic = task.repeat != Repeat.NONE
-                    task.copy(
-                        title = title.trim(),
-                        description = description.trim(),
-                        dueDate = if (isPeriodic) null else dueDate,
-                        dueTime = if (isPeriodic) null else dueTime,
-                        repeat = repeat,
-                        priority = priority,
-                        periodStartedAt = if (isPeriodic && !wasPeriodic) {
-                            LocalDateTime.now()
-                        } else if (isPeriodic) {
-                            task.periodStartedAt
-                        } else {
-                            null
-                        },
-                        photoUri = photoUri
-                    )
-                } else {
-                    task
-                }
-            }
+        val existingTask = tasks.value.find { it.id == taskId } ?: return
+        val isPeriodic = repeat != Repeat.NONE
+        val wasPeriodic = existingTask.repeat != Repeat.NONE
+
+        val updatedTask = existingTask.copy(
+            title = title.trim(),
+            description = description.trim(),
+            dueDate = if (isPeriodic) null else dueDate,
+            dueTime = if (isPeriodic) null else dueTime,
+            repeat = repeat,
+            priority = priority,
+            periodStartedAt = if (isPeriodic && !wasPeriodic) {
+                LocalDateTime.now()
+            } else if (isPeriodic) {
+                existingTask.periodStartedAt
+            } else {
+                null
+            },
+            photoUri = photoUri
+        )
+
+        viewModelScope.launch {
+            repository.updateTask(updatedTask)
         }
     }
 
     fun toggleTaskCompletion(taskId: String, clickPosition: Offset = Offset.Zero) {
-        val task = _tasks.value.find { it.id == taskId } ?: return
+        val task = tasks.value.find { it.id == taskId } ?: return
         val wasCompleted = task.status == TaskStatus.COMPLETED
 
-        _tasks.update { currentTasks ->
-            currentTasks.map { t ->
-                if (t.id == taskId) {
-                    if (wasCompleted) {
-                        t.copy(
-                            status = TaskStatus.TO_DO,
-                            completedAt = null
-                        )
-                    } else {
-                        t.copy(
-                            status = TaskStatus.COMPLETED,
-                            completedAt = LocalDate.now()
-                        )
-                    }
-                } else {
-                    t
-                }
-            }
+        val updatedTask = if (wasCompleted) {
+            task.copy(status = TaskStatus.TO_DO, completedAt = null)
+        } else {
+            task.copy(status = TaskStatus.COMPLETED, completedAt = LocalDate.now())
         }
 
-        // Trigger celebration effect and award points when completing a task
+        viewModelScope.launch {
+            repository.updateTask(updatedTask)
+        }
+
         if (!wasCompleted) {
             _celebrationState.value = CelebrationState(task = task, position = clickPosition)
             awardPoints(task)
@@ -221,42 +209,34 @@ class TaskViewModel : ViewModel() {
     }
 
     fun checkAndResetPeriodicTasks() {
-        // Find tasks that need to be reset (period expired and completed)
-        val tasksToReset = _tasks.value
+        val tasksToReset = tasks.value
             .filter { it.isPeriodic() && it.isPeriodExpired() && it.status == TaskStatus.COMPLETED }
-            .map { it.id }
-            .toSet()
 
         if (tasksToReset.isEmpty()) return
 
-        _tasks.update { currentTasks ->
-            currentTasks.map { task ->
-                if (task.id in tasksToReset) {
-                    // Reset the task for the new period
-                    task.copy(
-                        status = TaskStatus.TO_DO,
-                        completedAt = null,
-                        periodStartedAt = LocalDateTime.now()
-                    )
-                } else {
-                    task
-                }
+        viewModelScope.launch {
+            tasksToReset.forEach { task ->
+                val resetTask = task.copy(
+                    status = TaskStatus.TO_DO,
+                    completedAt = null,
+                    periodStartedAt = LocalDateTime.now()
+                )
+                repository.updateTask(resetTask)
             }
         }
 
-        // Only remove IDs of tasks that actually expired from rewarded list
         _rewardsState.update { current ->
             current.copy(
-                rewardedTaskIds = current.rewardedTaskIds - tasksToReset
+                rewardedTaskIds = current.rewardedTaskIds - tasksToReset.map { it.id }.toSet()
             )
         }
     }
 
     fun getPeriodicTasks(): List<Task> {
-        return _tasks.value.filter { it.isPeriodic() }
+        return tasks.value.filter { it.isPeriodic() }
     }
 
     fun getNonPeriodicTasks(): List<Task> {
-        return _tasks.value.filter { !it.isPeriodic() }
+        return tasks.value.filter { !it.isPeriodic() }
     }
 }
