@@ -2,8 +2,10 @@ package com.app.todoleast.viewmodel
 
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
+import com.app.todoleast.model.Achievement
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
+import com.app.todoleast.model.RewardsState
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,12 +30,38 @@ class TaskViewModel : ViewModel() {
     private val _celebrationState = MutableStateFlow(CelebrationState())
     val celebrationState: StateFlow<CelebrationState> = _celebrationState.asStateFlow()
 
+    private val _rewardsState = MutableStateFlow(RewardsState())
+    val rewardsState: StateFlow<RewardsState> = _rewardsState.asStateFlow()
+
     fun setFilter(status: TaskStatus?) {
         _selectedFilter.value = status
     }
 
     fun clearCelebration() {
         _celebrationState.value = CelebrationState()
+    }
+
+    fun clearNewAchievement() {
+        _rewardsState.update { it.copy(newlyUnlockedAchievement = null) }
+    }
+
+    private fun awardPoints(task: Task) {
+        val points = _rewardsState.value.getPointsForPriority(task.priority)
+        val newCount = _rewardsState.value.completedTasksCount + 1
+        val newAchievement = _rewardsState.value.checkNewAchievements(newCount)
+
+        _rewardsState.update { current ->
+            current.copy(
+                totalPoints = current.totalPoints + points,
+                completedTasksCount = newCount,
+                unlockedAchievements = if (newAchievement != null) {
+                    current.unlockedAchievements + newAchievement
+                } else {
+                    current.unlockedAchievements
+                },
+                newlyUnlockedAchievement = newAchievement
+            )
+        }
     }
 
     fun getOverdueTasks(): List<Task> {
@@ -177,9 +205,10 @@ class TaskViewModel : ViewModel() {
             }
         }
 
-        // Trigger celebration effect when completing a task
+        // Trigger celebration effect and award points when completing a task
         if (!wasCompleted) {
             _celebrationState.value = CelebrationState(task = task, position = clickPosition)
+            awardPoints(task)
         }
     }
 }
