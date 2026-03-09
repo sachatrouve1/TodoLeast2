@@ -1,9 +1,11 @@
 package com.app.todoleast.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,8 +24,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material3.AlertDialog
@@ -63,9 +71,11 @@ import androidx.compose.material3.HorizontalDivider
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -578,6 +588,11 @@ private fun TaskListWithSections(
     onToggleTaskCompletion: (String, Offset) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var dailyExpanded by remember { mutableStateOf(true) }
+    var weeklyExpanded by remember { mutableStateOf(true) }
+    var monthlyExpanded by remember { mutableStateOf(true) }
+    var regularExpanded by remember { mutableStateOf(true) }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -586,68 +601,100 @@ private fun TaskListWithSections(
         // Daily tasks section
         if (dailyTasks.isNotEmpty()) {
             item {
-                SectionHeader(title = "Quotidien", emoji = "📅")
-            }
-            items(
-                items = dailyTasks,
-                key = { "daily_${it.id}" }
-            ) { task ->
-                TaskItem(
-                    task = task,
-                    onTaskClick = { onTaskClick(task.id) },
-                    onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                SectionHeader(
+                    title = "Quotidien",
+                    icon = Icons.Outlined.WbSunny,
+                    count = dailyTasks.size,
+                    expanded = dailyExpanded,
+                    onToggle = { dailyExpanded = !dailyExpanded }
                 )
+            }
+            if (dailyExpanded) {
+                items(
+                    items = dailyTasks,
+                    key = { "daily_${it.id}" }
+                ) { task ->
+                    TaskItem(
+                        task = task,
+                        onTaskClick = { onTaskClick(task.id) },
+                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                    )
+                }
             }
         }
 
         // Weekly tasks section
         if (weeklyTasks.isNotEmpty()) {
             item {
-                SectionHeader(title = "Hebdomadaire", emoji = "📆")
-            }
-            items(
-                items = weeklyTasks,
-                key = { "weekly_${it.id}" }
-            ) { task ->
-                TaskItem(
-                    task = task,
-                    onTaskClick = { onTaskClick(task.id) },
-                    onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                SectionHeader(
+                    title = "Hebdomadaire",
+                    icon = Icons.Outlined.DateRange,
+                    count = weeklyTasks.size,
+                    expanded = weeklyExpanded,
+                    onToggle = { weeklyExpanded = !weeklyExpanded }
                 )
+            }
+            if (weeklyExpanded) {
+                items(
+                    items = weeklyTasks,
+                    key = { "weekly_${it.id}" }
+                ) { task ->
+                    TaskItem(
+                        task = task,
+                        onTaskClick = { onTaskClick(task.id) },
+                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                    )
+                }
             }
         }
 
         // Monthly tasks section
         if (monthlyTasks.isNotEmpty()) {
             item {
-                SectionHeader(title = "Mensuel", emoji = "🗓️")
-            }
-            items(
-                items = monthlyTasks,
-                key = { "monthly_${it.id}" }
-            ) { task ->
-                TaskItem(
-                    task = task,
-                    onTaskClick = { onTaskClick(task.id) },
-                    onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                SectionHeader(
+                    title = "Mensuel",
+                    icon = Icons.Outlined.CalendarMonth,
+                    count = monthlyTasks.size,
+                    expanded = monthlyExpanded,
+                    onToggle = { monthlyExpanded = !monthlyExpanded }
                 )
+            }
+            if (monthlyExpanded) {
+                items(
+                    items = monthlyTasks,
+                    key = { "monthly_${it.id}" }
+                ) { task ->
+                    TaskItem(
+                        task = task,
+                        onTaskClick = { onTaskClick(task.id) },
+                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                    )
+                }
             }
         }
 
         // Regular tasks section
         if (regularTasks.isNotEmpty()) {
             item {
-                SectionHeader(title = "Taches", emoji = "📝")
-            }
-            items(
-                items = regularTasks,
-                key = { "regular_${it.id}" }
-            ) { task ->
-                TaskItem(
-                    task = task,
-                    onTaskClick = { onTaskClick(task.id) },
-                    onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                SectionHeader(
+                    title = "Tâches",
+                    icon = Icons.Outlined.Checklist,
+                    count = regularTasks.size,
+                    expanded = regularExpanded,
+                    onToggle = { regularExpanded = !regularExpanded }
                 )
+            }
+            if (regularExpanded) {
+                items(
+                    items = regularTasks,
+                    key = { "regular_${it.id}" }
+                ) { task ->
+                    TaskItem(
+                        task = task,
+                        onTaskClick = { onTaskClick(task.id) },
+                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                    )
+                }
             }
         }
 
@@ -661,26 +708,38 @@ private fun TaskListWithSections(
 @Composable
 private fun SectionHeader(
     title: String,
-    emoji: String,
+    icon: ImageVector,
+    count: Int,
+    expanded: Boolean,
+    onToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (expanded) 0f else -90f,
+        label = "arrowRotation"
+    )
+
     Row(
         modifier = modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
             .padding(vertical = 12.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(36.dp)
                 .background(
                     color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                     shape = RoundedCornerShape(10.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = emoji,
-                style = MaterialTheme.typography.titleSmall
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.primary
             )
         }
         Spacer(modifier = Modifier.padding(horizontal = 6.dp))
@@ -689,7 +748,32 @@ private fun SectionHeader(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
-            letterSpacing = 0.5.sp
+            letterSpacing = 0.5.sp,
+            modifier = Modifier.weight(1f)
+        )
+        Box(
+            modifier = Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = "$count",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+        Icon(
+            imageVector = Icons.Filled.KeyboardArrowDown,
+            contentDescription = if (expanded) "Réduire" else "Agrandir",
+            modifier = Modifier
+                .size(24.dp)
+                .rotate(rotationAngle),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
