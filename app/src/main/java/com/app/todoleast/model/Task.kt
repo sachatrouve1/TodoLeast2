@@ -25,7 +25,19 @@ data class Task(
         if (status == TaskStatus.COMPLETED) return false
         if (repeat != Repeat.NONE) return false
         val due = dueDate ?: return false
-        return LocalDate.now().isAfter(due)
+
+        val now = LocalDateTime.now()
+        val today = now.toLocalDate()
+
+        // If the due date is in the past, it's overdue
+        if (today.isAfter(due)) return true
+
+        // If the due date is today and we have a time, check if the time has passed
+        if (today.isEqual(due) && dueTime != null) {
+            return now.toLocalTime().isAfter(dueTime)
+        }
+
+        return false
     }
 
     fun getEffectiveStatus(): TaskStatus {
