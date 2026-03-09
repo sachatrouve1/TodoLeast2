@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 data class CelebrationState(
@@ -82,14 +83,16 @@ class TaskViewModel : ViewModel() {
     ) {
         if (title.isBlank()) return
 
+        val isPeriodic = repeat != Repeat.NONE
         val newTask = Task(
             title = title.trim(),
             description = description.trim(),
-            dueDate = dueDate,
-            dueTime = dueTime,
+            dueDate = if (isPeriodic) null else dueDate,
+            dueTime = if (isPeriodic) null else dueTime,
             status = TaskStatus.TO_DO,
             repeat = repeat,
-            priority = priority
+            priority = priority,
+            periodStartedAt = if (isPeriodic) LocalDateTime.now() else null
         )
 
         _tasks.update { currentTasks ->
@@ -110,11 +113,16 @@ class TaskViewModel : ViewModel() {
     }
 
     fun getFilteredTasks(): List<Task> {
+        // Check and reset expired periodic tasks
+        checkAndResetPeriodicTasks()
+
         val filter = _selectedFilter.value
+        // Only return non-periodic tasks in the main filtered list
+        val nonPeriodicTasks = _tasks.value.filter { !it.isPeriodic() }
         val filteredTasks = if (filter == null) {
-            _tasks.value
+            nonPeriodicTasks
         } else {
-            _tasks.value.filter { it.getEffectiveStatus() == filter }
+            nonPeriodicTasks.filter { it.getEffectiveStatus() == filter }
         }
 
         return filteredTasks.sortedWith(
@@ -123,6 +131,15 @@ class TaskViewModel : ViewModel() {
                 .thenBy { it.dueDate ?: LocalDate.MAX }
                 .thenBy { it.createdAt }
         )
+    }
+
+    fun getFilteredPeriodicTasks(repeat: Repeat): List<Task> {
+        return _tasks.value
+            .filter { it.repeat == repeat }
+            .sortedWith(
+                compareBy<Task> { it.status == TaskStatus.COMPLETED }
+                    .thenByDescending { it.priority.ordinal }
+            )
     }
 
     fun getTaskById(taskId: String): Task? {
@@ -143,13 +160,22 @@ class TaskViewModel : ViewModel() {
         _tasks.update { currentTasks ->
             currentTasks.map { task ->
                 if (task.id == taskId) {
+                    val isPeriodic = repeat != Repeat.NONE
+                    val wasPeriodic = task.repeat != Repeat.NONE
                     task.copy(
                         title = title.trim(),
                         description = description.trim(),
-                        dueDate = dueDate,
-                        dueTime = dueTime,
+                        dueDate = if (isPeriodic) null else dueDate,
+                        dueTime = if (isPeriodic) null else dueTime,
                         repeat = repeat,
-                        priority = priority
+                        priority = priority,
+                        periodStartedAt = if (isPeriodic && !wasPeriodic) {
+                            LocalDateTime.now()
+                        } else if (isPeriodic) {
+                            task.periodStartedAt
+                        } else {
+                            null
+                        }
                     )
                 } else {
                     task
@@ -163,7 +189,7 @@ class TaskViewModel : ViewModel() {
         val wasCompleted = task.status == TaskStatus.COMPLETED
 
         _tasks.update { currentTasks ->
-            val updatedTasks = currentTasks.map { t ->
+            currentTasks.map { t ->
                 if (t.id == taskId) {
                     if (wasCompleted) {
                         t.copy(
@@ -180,33 +206,6 @@ class TaskViewModel : ViewModel() {
                     t
                 }
             }
-
-            // Si la tache a une periodicite, creer une nouvelle occurrence
-            if (!wasCompleted && task.repeat != Repeat.NONE && task.dueDate != null) {
-                val nextDueDate = when (task.repeat) {
-                    Repeat.DAILY -> task.dueDate.plusDays(1)
-                    Repeat.WEEKLY -> task.dueDate.plusWeeks(1)
-                    Repeat.MONTHLY -> task.dueDate.plusMonths(1)
-                    Repeat.NONE -> null
-                }
-
-                if (nextDueDate != null) {
-                    val newTask = Task(
-                        title = task.title,
-                        description = task.description,
-                        dueDate = nextDueDate,
-                        dueTime = task.dueTime,
-                        status = TaskStatus.TO_DO,
-                        repeat = task.repeat,
-                        priority = task.priority
-                    )
-                    updatedTasks + newTask
-                } else {
-                    updatedTasks
-                }
-            } else {
-                updatedTasks
-            }
         }
 
         // Trigger celebration effect and award points when completing a task
@@ -214,5 +213,41 @@ class TaskViewModel : ViewModel() {
             _celebrationState.value = CelebrationState(task = task, position = clickPosition)
             awardPoints(task)
         }
+    }
+
+    fun checkAndResetPeriodicTasks() {
+        _tasks.update { currentTasks ->
+            currentTasks.map { task ->
+                if (task.isPeriodic() && task.isPeriodExpired() && task.status == TaskStatus.COMPLETED) {
+                    // Reset the task for the new period
+                    task.copy(
+                        status = TaskStatus.TO_DO,
+                        completedAt = null,
+                        periodStartedAt = LocalDateTime.now()
+                    )
+                } else {
+                    task
+                }
+            }
+        }
+        // Remove the task ID from rewarded list so it can earn points again
+        val expiredTaskIds = _tasks.value
+            .filter { it.isPeriodic() && it.status == TaskStatus.TO_DO }
+            .map { it.id }
+            .toSet()
+
+        _rewardsState.update { current ->
+            current.copy(
+                rewardedTaskIds = current.rewardedTaskIds - expiredTaskIds
+            )
+        }
+    }
+
+    fun getPeriodicTasks(): List<Task> {
+        return _tasks.value.filter { it.isPeriodic() }
+    }
+
+    fun getNonPeriodicTasks(): List<Task> {
+        return _tasks.value.filter { !it.isPeriodic() }
     }
 }
