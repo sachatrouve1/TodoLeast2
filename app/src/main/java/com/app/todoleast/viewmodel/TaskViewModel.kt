@@ -3,6 +3,7 @@ package com.app.todoleast.viewmodel
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.todoleast.data.RewardsPreferences
 import com.app.todoleast.data.TaskRepository
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
@@ -25,7 +26,10 @@ data class CelebrationState(
     val position: Offset = Offset.Zero
 )
 
-class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
+class TaskViewModel(
+    private val repository: TaskRepository,
+    private val rewardsPreferences: RewardsPreferences
+) : ViewModel() {
     val tasks: StateFlow<List<Task>> = repository.allTasks
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -35,7 +39,7 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
     private val _celebrationState = MutableStateFlow(CelebrationState())
     val celebrationState: StateFlow<CelebrationState> = _celebrationState.asStateFlow()
 
-    private val _rewardsState = MutableStateFlow(RewardsState())
+    private val _rewardsState = MutableStateFlow(rewardsPreferences.loadRewardsState())
     val rewardsState: StateFlow<RewardsState> = _rewardsState.asStateFlow()
 
     fun setFilter(status: TaskStatus?) {
@@ -58,7 +62,7 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
         val newAchievement = _rewardsState.value.checkNewAchievements(newCount)
 
         _rewardsState.update { current ->
-            current.copy(
+            val newState = current.copy(
                 totalPoints = current.totalPoints + points,
                 completedTasksCount = newCount,
                 unlockedAchievements = if (newAchievement != null) {
@@ -69,6 +73,8 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
                 newlyUnlockedAchievement = newAchievement,
                 rewardedTaskIds = current.rewardedTaskIds + task.id
             )
+            rewardsPreferences.saveRewardsState(newState)
+            newState
         }
     }
 
@@ -226,9 +232,11 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
         }
 
         _rewardsState.update { current ->
-            current.copy(
+            val newState = current.copy(
                 rewardedTaskIds = current.rewardedTaskIds - tasksToReset.map { it.id }.toSet()
             )
+            rewardsPreferences.saveRewardsState(newState)
+            newState
         }
     }
 

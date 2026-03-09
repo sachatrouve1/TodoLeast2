@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.app.todoleast.data.AppDatabase
+import com.app.todoleast.data.RewardsPreferences
 import com.app.todoleast.data.TaskRepository
 import com.app.todoleast.ui.screens.AddTaskScreen
 import com.app.todoleast.ui.screens.EditTaskScreen
@@ -31,7 +32,8 @@ fun NavGraph(
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
     val repository = TaskRepository(database.taskDao())
-    val viewModel: TaskViewModel = viewModel(factory = TaskViewModelFactory(repository))
+    val rewardsPreferences = RewardsPreferences(context)
+    val viewModel: TaskViewModel = viewModel(factory = TaskViewModelFactory(repository, rewardsPreferences))
 
     NavHost(
         navController = navController,
