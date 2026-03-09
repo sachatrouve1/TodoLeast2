@@ -101,49 +101,29 @@ fun TaskListScreen(
         tasks.any { it.status == TaskStatus.COMPLETED && !it.isPeriodic() }
     }
 
-    // Notification check - track notified task IDs to avoid spam
+    // Notification check - tracking is done in ViewModel to persist across navigation
     val context = LocalContext.current
-    val notifiedOverdueIds = remember { mutableSetOf<String>() }
-    val notifiedDueSoonIds = remember { mutableSetOf<String>() }
-    val notifiedMissedPeriodicIds = remember { mutableSetOf<String>() }
-
     LaunchedEffect(Unit) {
         val notificationHelper = NotificationHelper(context)
 
         while (true) {
-            // Check for overdue tasks (only notify for new ones)
-            val overdueTasks = viewModel.getOverdueTasks()
-            val newOverdueTasks = overdueTasks.filter { it.id !in notifiedOverdueIds }
+            // Check for new overdue tasks
+            val newOverdueTasks = viewModel.getNewOverdueTasks()
             if (newOverdueTasks.isNotEmpty()) {
                 notificationHelper.showOverdueNotification(newOverdueTasks)
-                notifiedOverdueIds.addAll(newOverdueTasks.map { it.id })
             }
 
-            // Check for tasks due soon (within 30 minutes)
-            val dueSoonTasks = viewModel.getTasksDueSoon(30)
-            val newDueSoonTasks = dueSoonTasks.filter { it.id !in notifiedDueSoonIds }
+            // Check for new tasks due soon (within 30 minutes)
+            val newDueSoonTasks = viewModel.getNewDueSoonTasks(30)
             if (newDueSoonTasks.isNotEmpty()) {
                 notificationHelper.showDueSoonNotification(newDueSoonTasks)
-                notifiedDueSoonIds.addAll(newDueSoonTasks.map { it.id })
             }
 
-            // Check for uncompleted periodic tasks
-            val missedPeriodicTasks = viewModel.getUncompletedPeriodicTasks()
-            val newMissedPeriodic = missedPeriodicTasks.filter { it.id !in notifiedMissedPeriodicIds }
+            // Check for new uncompleted periodic tasks
+            val newMissedPeriodic = viewModel.getNewMissedPeriodicTasks()
             if (newMissedPeriodic.isNotEmpty()) {
                 notificationHelper.showMissedPeriodicNotification(newMissedPeriodic)
-                notifiedMissedPeriodicIds.addAll(newMissedPeriodic.map { it.id })
             }
-
-            // Clean up IDs for tasks that are no longer in their respective states
-            val currentOverdueIds = overdueTasks.map { it.id }.toSet()
-            notifiedOverdueIds.retainAll(currentOverdueIds)
-
-            val currentDueSoonIds = dueSoonTasks.map { it.id }.toSet()
-            notifiedDueSoonIds.retainAll(currentDueSoonIds)
-
-            val currentMissedIds = missedPeriodicTasks.map { it.id }.toSet()
-            notifiedMissedPeriodicIds.retainAll(currentMissedIds)
 
             // Check every minute
             delay(60_000L)

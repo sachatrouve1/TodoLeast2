@@ -43,6 +43,44 @@ class TaskViewModel(
     private val _rewardsState = MutableStateFlow(rewardsPreferences.loadRewardsState())
     val rewardsState: StateFlow<RewardsState> = _rewardsState.asStateFlow()
 
+    // Track notified task IDs to avoid notification spam
+    private val notifiedOverdueIds = mutableSetOf<String>()
+    private val notifiedDueSoonIds = mutableSetOf<String>()
+    private val notifiedMissedPeriodicIds = mutableSetOf<String>()
+
+    fun getNewOverdueTasks(): List<Task> {
+        val overdueTasks = getOverdueTasks()
+        val newTasks = overdueTasks.filter { it.id !in notifiedOverdueIds }
+        if (newTasks.isNotEmpty()) {
+            notifiedOverdueIds.addAll(newTasks.map { it.id })
+        }
+        // Clean up IDs for tasks no longer overdue
+        notifiedOverdueIds.retainAll(overdueTasks.map { it.id }.toSet())
+        return newTasks
+    }
+
+    fun getNewDueSoonTasks(minutesBefore: Int = 30): List<Task> {
+        val dueSoonTasks = getTasksDueSoon(minutesBefore)
+        val newTasks = dueSoonTasks.filter { it.id !in notifiedDueSoonIds }
+        if (newTasks.isNotEmpty()) {
+            notifiedDueSoonIds.addAll(newTasks.map { it.id })
+        }
+        // Clean up IDs for tasks no longer due soon
+        notifiedDueSoonIds.retainAll(dueSoonTasks.map { it.id }.toSet())
+        return newTasks
+    }
+
+    fun getNewMissedPeriodicTasks(): List<Task> {
+        val missedTasks = getUncompletedPeriodicTasks()
+        val newTasks = missedTasks.filter { it.id !in notifiedMissedPeriodicIds }
+        if (newTasks.isNotEmpty()) {
+            notifiedMissedPeriodicIds.addAll(newTasks.map { it.id })
+        }
+        // Clean up IDs for tasks no longer missed
+        notifiedMissedPeriodicIds.retainAll(missedTasks.map { it.id }.toSet())
+        return newTasks
+    }
+
     fun setFilter(status: TaskStatus?) {
         _selectedFilter.value = status
     }
