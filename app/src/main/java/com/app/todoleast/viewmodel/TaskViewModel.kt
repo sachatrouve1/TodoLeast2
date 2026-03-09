@@ -297,4 +297,31 @@ class TaskViewModel(
         }
         return com.google.gson.Gson().toJson(tasksList)
     }
+
+    fun importTasksJson(json: String): Boolean {
+        return try {
+            val gson = com.google.gson.Gson()
+            val type = object : com.google.gson.reflect.TypeToken<List<Map<String, String?>>>() {}.type
+            val tasksList: List<Map<String, String?>> = gson.fromJson(json, type)
+
+            viewModelScope.launch {
+                tasksList.forEach { taskMap ->
+                    val task = Task(
+                        title = taskMap["title"] ?: return@forEach,
+                        description = taskMap["description"] ?: "",
+                        dueDate = taskMap["dueDate"]?.let { LocalDate.parse(it) },
+                        dueTime = taskMap["dueTime"]?.let { LocalTime.parse(it) },
+                        status = taskMap["status"]?.let { TaskStatus.valueOf(it) } ?: TaskStatus.TO_DO,
+                        repeat = taskMap["repeat"]?.let { Repeat.valueOf(it) } ?: Repeat.NONE,
+                        priority = taskMap["priority"]?.let { Priority.valueOf(it) } ?: Priority.MEDIUM,
+                        category = taskMap["category"]?.let { Category.valueOf(it) } ?: Category.NONE
+                    )
+                    repository.insertTask(task)
+                }
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
