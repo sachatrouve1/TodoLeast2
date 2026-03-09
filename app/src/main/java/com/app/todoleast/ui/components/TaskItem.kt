@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.app.todoleast.model.Category
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
@@ -197,7 +198,7 @@ fun TaskItem(
                     }
                 }
 
-                // Status and priority badges (no repeat badge since periodic tasks are in separate sections)
+                // Status, priority and category badges
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -205,6 +206,9 @@ fun TaskItem(
                 ) {
                     StatusBadge(status = effectiveStatus)
                     PriorityBadge(priority = task.priority)
+                    if (task.category != Category.NONE) {
+                        CategoryBadge(category = task.category)
+                    }
                 }
             }
 
@@ -265,6 +269,29 @@ private fun PriorityBadge(priority: Priority) {
             text = text,
             style = MaterialTheme.typography.labelSmall,
             color = color,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+private fun CategoryBadge(category: Category) {
+    val text = if (category.emoji.isNotEmpty()) {
+        "${category.emoji} ${category.label}"
+    } else {
+        category.label
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
             fontWeight = FontWeight.Medium
         )
     }

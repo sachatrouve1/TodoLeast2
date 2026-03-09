@@ -45,8 +45,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import com.app.todoleast.model.Category
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
+import com.app.todoleast.ui.components.CategorySelector
 import com.app.todoleast.ui.components.PhotoPicker
 import com.app.todoleast.ui.components.PrioritySelector
 import com.app.todoleast.ui.components.RepeatSelector
@@ -60,7 +62,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AddTaskScreen(
     onNavigateBack: () -> Unit,
-    onTaskCreated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat, priority: Priority, photoUri: String?) -> Unit
+    onTaskCreated: (title: String, description: String, dueDate: LocalDate?, dueTime: LocalTime?, repeat: Repeat, priority: Priority, photoUri: String?, category: Category) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -69,6 +71,7 @@ fun AddTaskScreen(
     var repeat by remember { mutableStateOf(Repeat.NONE) }
     var priority by remember { mutableStateOf(Priority.MEDIUM) }
     var photoUri by remember { mutableStateOf<String?>(null) }
+    var category by remember { mutableStateOf(Category.NONE) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
@@ -288,6 +291,22 @@ fun AddTaskScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            Text(
+                text = "Categorie",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            CategorySelector(
+                selectedCategory = category,
+                onCategorySelected = { category = it }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             PhotoPicker(
                 photoUri = photoUri,
                 onPhotoSelected = { photoUri = it }
@@ -298,7 +317,7 @@ fun AddTaskScreen(
             // Create button
             Button(
                 onClick = {
-                    onTaskCreated(title, description, dueDate, dueTime, repeat, priority, photoUri)
+                    onTaskCreated(title, description, dueDate, dueTime, repeat, priority, photoUri, category)
                     onNavigateBack()
                 },
                 enabled = isFormValid,
