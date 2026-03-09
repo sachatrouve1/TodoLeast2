@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.app.todoleast.model.Category
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.Task
@@ -61,7 +62,8 @@ private data class TaskDto(
     val repeat: String,
     val priority: String,
     val periodStartedAt: LocalDateTime?,
-    val photoUri: String?
+    val photoUri: String?,
+    val category: String? = null
 ) {
     fun toTask(): Task = Task(
         id = id,
@@ -75,7 +77,8 @@ private data class TaskDto(
         repeat = Repeat.valueOf(repeat),
         priority = Priority.valueOf(priority),
         periodStartedAt = periodStartedAt,
-        photoUri = photoUri
+        photoUri = photoUri,
+        category = category?.let { Category.valueOf(it) } ?: Category.NONE
     )
 
     companion object {
@@ -91,7 +94,8 @@ private data class TaskDto(
             repeat = task.repeat.name,
             priority = task.priority.name,
             periodStartedAt = task.periodStartedAt,
-            photoUri = task.photoUri
+            photoUri = task.photoUri,
+            category = task.category.name
         )
     }
 }

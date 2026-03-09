@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.todoleast.data.RewardsPreferences
 import com.app.todoleast.data.TaskRepository
+import com.app.todoleast.model.Category
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Repeat
 import com.app.todoleast.model.RewardsState
@@ -89,7 +90,8 @@ class TaskViewModel(
         dueTime: LocalTime? = null,
         repeat: Repeat = Repeat.NONE,
         priority: Priority = Priority.MEDIUM,
-        photoUri: String? = null
+        photoUri: String? = null,
+        category: Category = Category.NONE
     ) {
         if (title.isBlank()) return
 
@@ -103,7 +105,8 @@ class TaskViewModel(
             repeat = repeat,
             priority = priority,
             periodStartedAt = if (isPeriodic) LocalDateTime.now() else null,
-            photoUri = photoUri
+            photoUri = photoUri,
+            category = category
         )
 
         viewModelScope.launch {
@@ -164,7 +167,8 @@ class TaskViewModel(
         dueTime: LocalTime?,
         repeat: Repeat = Repeat.NONE,
         priority: Priority = Priority.MEDIUM,
-        photoUri: String? = null
+        photoUri: String? = null,
+        category: Category = Category.NONE
     ) {
         if (title.isBlank()) return
 
@@ -186,7 +190,8 @@ class TaskViewModel(
             } else {
                 null
             },
-            photoUri = photoUri
+            photoUri = photoUri,
+            category = category
         )
 
         viewModelScope.launch {
@@ -246,5 +251,50 @@ class TaskViewModel(
 
     fun getNonPeriodicTasks(): List<Task> {
         return tasks.value.filter { !it.isPeriodic() }
+    }
+
+    fun getTasksApproachingDueDate(): List<Task> {
+        val today = LocalDate.now()
+        val tomorrow = today.plusDays(1)
+        return tasks.value.filter { task ->
+            task.status != TaskStatus.COMPLETED &&
+            task.dueDate != null &&
+            (task.dueDate == today || task.dueDate == tomorrow)
+        }
+    }
+
+    fun getTasksSummary(): String {
+        val allTasks = tasks.value
+        val todo = allTasks.count { it.getEffectiveStatus() == TaskStatus.TO_DO }
+        val completed = allTasks.count { it.getEffectiveStatus() == TaskStatus.COMPLETED }
+        val overdue = allTasks.count { it.getEffectiveStatus() == TaskStatus.OVERDUE }
+        val approaching = getTasksApproachingDueDate().size
+
+        return buildString {
+            appendLine("Recap des taches:")
+            appendLine("- A faire: $todo")
+            appendLine("- Terminees: $completed")
+            appendLine("- En retard: $overdue")
+            if (approaching > 0) {
+                appendLine("- Arrivent a echeance: $approaching")
+            }
+        }
+    }
+
+    fun exportTasksJson(): String {
+        val tasksList = tasks.value.map { task ->
+            mapOf(
+                "title" to task.title,
+                "description" to task.description,
+                "dueDate" to task.dueDate?.toString(),
+                "dueTime" to task.dueTime?.toString(),
+                "status" to task.status.name,
+                "repeat" to task.repeat.name,
+                "priority" to task.priority.name,
+                "category" to task.category.name,
+                "photoUri" to task.photoUri
+            )
+        }
+        return com.google.gson.Gson().toJson(tasksList)
     }
 }

@@ -18,7 +18,8 @@ data class Task(
     val repeat: Repeat = Repeat.NONE,
     val priority: Priority = Priority.MEDIUM,
     val periodStartedAt: LocalDateTime? = null,
-    val photoUri: String? = null
+    val photoUri: String? = null,
+    val category: Category = Category.NONE
 ) {
     fun isOverdue(): Boolean {
         if (status == TaskStatus.COMPLETED) return false
