@@ -15,9 +15,9 @@ data class RewardsState(
         }
     }
 
-    fun checkNewAchievements(newCount: Int): Achievement? {
+    fun checkNewAchievements(newTotalPoints: Int): Achievement? {
         return Achievement.entries
-            .filter { it.requiredCount == newCount }
+            .filter { it.requiredPoints <= newTotalPoints }
             .firstOrNull { it !in unlockedAchievements }
     }
 }

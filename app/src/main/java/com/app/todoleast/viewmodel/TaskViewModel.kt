@@ -97,12 +97,13 @@ class TaskViewModel(
         if (task.id in _rewardsState.value.rewardedTaskIds) return
 
         val points = _rewardsState.value.getPointsForPriority(task.priority)
+        val newTotalPoints = _rewardsState.value.totalPoints + points
         val newCount = _rewardsState.value.completedTasksCount + 1
-        val newAchievement = _rewardsState.value.checkNewAchievements(newCount)
+        val newAchievement = _rewardsState.value.checkNewAchievements(newTotalPoints)
 
         _rewardsState.update { current ->
             val newState = current.copy(
-                totalPoints = current.totalPoints + points,
+                totalPoints = newTotalPoints,
                 completedTasksCount = newCount,
                 unlockedAchievements = if (newAchievement != null) {
                     current.unlockedAchievements + newAchievement
