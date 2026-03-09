@@ -23,9 +23,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Checklist
@@ -95,7 +97,7 @@ import com.app.todoleast.viewmodel.TaskViewModel
 fun TaskListScreen(
     viewModel: TaskViewModel,
     onAddTaskClick: () -> Unit,
-    onTaskClick: (String) -> Unit,
+    onEditTask: (String) -> Unit,
     onToggleTaskCompletion: (String, Offset) -> Unit
 ) {
     val tasks by viewModel.tasks.collectAsState()
@@ -131,6 +133,11 @@ fun TaskListScreen(
     var showImportDialog by remember { mutableStateOf(false) }
     var importText by remember { mutableStateOf("") }
     val clipboardManager = LocalClipboardManager.current
+
+    // Selection mode
+    var isSelectionMode by remember { mutableStateOf(false) }
+    var selectedTaskIds by remember { mutableStateOf(setOf<String>()) }
+    var showDeleteSelectedDialog by remember { mutableStateOf(false) }
     val hasCompletedTasks = remember(tasks) {
         tasks.any { it.status == TaskStatus.COMPLETED && !it.isPeriodic() }
     }
@@ -205,46 +212,90 @@ fun TaskListScreen(
         Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = {
-                    Column {
+            if (isSelectionMode) {
+                // Selection mode top bar
+                LargeTopAppBar(
+                    title = {
                         Text(
-                            text = "TodoLeast",
-                            style = MaterialTheme.typography.headlineLarge,
+                            text = "${selectedTaskIds.size} sélectionnée${if (selectedTaskIds.size > 1) "s" else ""}",
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        if (tasks.isNotEmpty()) {
-                            Text(
-                                text = "${tasks.size} tâche${if (tasks.size > 1) "s" else ""}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    PointsBadge(
-                        points = rewardsState.totalPoints,
-                        onClick = { showRewardsDialog = true }
-                    )
-                    IconButton(onClick = { showDeleteCompletedDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Default.DeleteSweep,
-                            contentDescription = "Supprimer les tâches terminées",
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            isSelectionMode = false
+                            selectedTaskIds = emptySet()
+                        }) {
                             Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "Plus d'options"
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Annuler la sélection"
                             )
                         }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = { showDeleteSelectedDialog = true },
+                            enabled = selectedTaskIds.isNotEmpty()
                         ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = "Supprimer la sélection",
+                                tint = if (selectedTaskIds.isNotEmpty())
+                                    MaterialTheme.colorScheme.error
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    scrollBehavior = scrollBehavior
+                )
+            } else {
+                // Normal top bar
+                LargeTopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                text = "TodoLeast",
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            if (tasks.isNotEmpty()) {
+                                Text(
+                                    text = "${tasks.size} tâche${if (tasks.size > 1) "s" else ""}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    },
+                    actions = {
+                        PointsBadge(
+                            points = rewardsState.totalPoints,
+                            onClick = { showRewardsDialog = true }
+                        )
+                        IconButton(onClick = { showDeleteCompletedDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = "Supprimer les tâches terminées",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "Plus d'options"
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
                             // Export section
                             DropdownMenuItem(
                                 text = { Text("Exporter vers presse-papiers") },
@@ -304,13 +355,14 @@ fun TaskListScreen(
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                ),
-                scrollBehavior = scrollBehavior
-            )
+                    },
+                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -370,8 +422,28 @@ fun TaskListScreen(
                     dailyTasks = dailyTasks,
                     weeklyTasks = weeklyTasks,
                     monthlyTasks = monthlyTasks,
-                    onTaskClick = onTaskClick,
-                    onToggleTaskCompletion = onToggleTaskCompletion
+                    selectedTaskIds = selectedTaskIds,
+                    isSelectionMode = isSelectionMode,
+                    onToggleTaskCompletion = onToggleTaskCompletion,
+                    onLongPress = { taskId ->
+                        isSelectionMode = true
+                        selectedTaskIds = selectedTaskIds + taskId
+                    },
+                    onSelect = { taskId ->
+                        selectedTaskIds = if (taskId in selectedTaskIds) {
+                            val newSet = selectedTaskIds - taskId
+                            if (newSet.isEmpty()) {
+                                isSelectionMode = false
+                            }
+                            newSet
+                        } else {
+                            selectedTaskIds + taskId
+                        }
+                    },
+                    onEdit = onEditTask,
+                    onDelete = { taskId ->
+                        viewModel.deleteTask(taskId)
+                    }
                 )
             }
         }
@@ -494,6 +566,39 @@ fun TaskListScreen(
                 }
             )
         }
+
+        // Delete selected tasks dialog
+        if (showDeleteSelectedDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteSelectedDialog = false },
+                title = { Text("Supprimer les tâches sélectionnées") },
+                text = {
+                    Text("Voulez-vous vraiment supprimer ${selectedTaskIds.size} tâche${if (selectedTaskIds.size > 1) "s" else ""} ?")
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            selectedTaskIds.forEach { taskId ->
+                                viewModel.deleteTask(taskId)
+                            }
+                            selectedTaskIds = emptySet()
+                            isSelectionMode = false
+                            showDeleteSelectedDialog = false
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Supprimer")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteSelectedDialog = false }) {
+                        Text("Annuler")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -584,8 +689,13 @@ private fun TaskListWithSections(
     dailyTasks: List<Task>,
     weeklyTasks: List<Task>,
     monthlyTasks: List<Task>,
-    onTaskClick: (String) -> Unit,
+    selectedTaskIds: Set<String>,
+    isSelectionMode: Boolean,
     onToggleTaskCompletion: (String, Offset) -> Unit,
+    onLongPress: (String) -> Unit,
+    onSelect: (String) -> Unit,
+    onEdit: (String) -> Unit,
+    onDelete: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var dailyExpanded by remember { mutableStateOf(true) }
@@ -616,8 +726,13 @@ private fun TaskListWithSections(
                 ) { task ->
                     TaskItem(
                         task = task,
-                        onTaskClick = { onTaskClick(task.id) },
-                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                        isSelected = task.id in selectedTaskIds,
+                        isSelectionMode = isSelectionMode,
+                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) },
+                        onLongPress = { onLongPress(task.id) },
+                        onSelect = { onSelect(task.id) },
+                        onEdit = { onEdit(task.id) },
+                        onDelete = { onDelete(task.id) }
                     )
                 }
             }
@@ -641,8 +756,13 @@ private fun TaskListWithSections(
                 ) { task ->
                     TaskItem(
                         task = task,
-                        onTaskClick = { onTaskClick(task.id) },
-                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                        isSelected = task.id in selectedTaskIds,
+                        isSelectionMode = isSelectionMode,
+                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) },
+                        onLongPress = { onLongPress(task.id) },
+                        onSelect = { onSelect(task.id) },
+                        onEdit = { onEdit(task.id) },
+                        onDelete = { onDelete(task.id) }
                     )
                 }
             }
@@ -666,8 +786,13 @@ private fun TaskListWithSections(
                 ) { task ->
                     TaskItem(
                         task = task,
-                        onTaskClick = { onTaskClick(task.id) },
-                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                        isSelected = task.id in selectedTaskIds,
+                        isSelectionMode = isSelectionMode,
+                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) },
+                        onLongPress = { onLongPress(task.id) },
+                        onSelect = { onSelect(task.id) },
+                        onEdit = { onEdit(task.id) },
+                        onDelete = { onDelete(task.id) }
                     )
                 }
             }
@@ -691,8 +816,13 @@ private fun TaskListWithSections(
                 ) { task ->
                     TaskItem(
                         task = task,
-                        onTaskClick = { onTaskClick(task.id) },
-                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) }
+                        isSelected = task.id in selectedTaskIds,
+                        isSelectionMode = isSelectionMode,
+                        onToggleCompletion = { position -> onToggleTaskCompletion(task.id, position) },
+                        onLongPress = { onLongPress(task.id) },
+                        onSelect = { onSelect(task.id) },
+                        onEdit = { onEdit(task.id) },
+                        onDelete = { onDelete(task.id) }
                     )
                 }
             }

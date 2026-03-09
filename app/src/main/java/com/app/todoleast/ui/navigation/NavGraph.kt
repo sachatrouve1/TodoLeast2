@@ -45,7 +45,7 @@ fun NavGraph(
                 onAddTaskClick = {
                     navController.navigate(Screen.AddTask.route)
                 },
-                onTaskClick = { taskId ->
+                onEditTask = { taskId ->
                     navController.navigate(Screen.EditTask.createRoute(taskId))
                 },
                 onToggleTaskCompletion = { taskId, position ->
