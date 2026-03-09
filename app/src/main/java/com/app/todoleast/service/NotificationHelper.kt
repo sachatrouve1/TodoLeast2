@@ -20,6 +20,8 @@ class NotificationHelper(private val context: Context) {
         const val CHANNEL_ID_OVERDUE = "overdue_tasks"
         const val CHANNEL_ID_UPCOMING = "upcoming_tasks"
         const val NOTIFICATION_ID_OVERDUE = 1001
+        const val NOTIFICATION_ID_UPCOMING = 1002
+        const val NOTIFICATION_ID_SUMMARY = 1003
     }
 
     init {
@@ -88,6 +90,71 @@ class NotificationHelper(private val context: Context) {
         notificationManager.notify(NOTIFICATION_ID_OVERDUE, notification)
 
         vibrate()
+    }
+
+    fun showUpcomingNotification(upcomingTasks: List<Task>) {
+        if (upcomingTasks.isEmpty()) return
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            1,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val title = if (upcomingTasks.size == 1) {
+            "1 tache arrive a echeance"
+        } else {
+            "${upcomingTasks.size} taches arrivent a echeance"
+        }
+
+        val content = if (upcomingTasks.size == 1) {
+            upcomingTasks.first().title
+        } else {
+            upcomingTasks.take(3).joinToString(", ") { it.title } +
+                    if (upcomingTasks.size > 3) "..." else ""
+        }
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID_UPCOMING)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(title)
+            .setContentText(content)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        val notificationManager = context.getSystemService(NotificationManager::class.java)
+        notificationManager.notify(NOTIFICATION_ID_UPCOMING, notification)
+    }
+
+    fun showSummaryNotification(todoCount: Int, completedCount: Int, overdueCount: Int) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            2,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val content = "A faire: $todoCount | Terminees: $completedCount | En retard: $overdueCount"
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID_UPCOMING)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Recap de vos taches")
+            .setContentText(content)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        val notificationManager = context.getSystemService(NotificationManager::class.java)
+        notificationManager.notify(NOTIFICATION_ID_SUMMARY, notification)
     }
 
     private fun vibrate() {
