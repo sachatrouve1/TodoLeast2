@@ -313,6 +313,9 @@ fun TaskItem(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        if (effectiveStatus == TaskStatus.OVERDUE) {
+                            OverdueChip()
+                        }
                         PriorityIndicator(priority = task.priority)
                         if (task.category != Category.NONE) {
                             CategoryChip(category = task.category)
@@ -490,5 +493,21 @@ private fun CategoryChip(category: Category) {
                 fontWeight = FontWeight.Medium
             )
         }
+    }
+}
+
+@Composable
+private fun OverdueChip() {
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = StatusOverdue.copy(alpha = 0.15f)
+    ) {
+        Text(
+            text = "En retard",
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = StatusOverdue,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
