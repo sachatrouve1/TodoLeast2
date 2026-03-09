@@ -217,9 +217,17 @@ class TaskViewModel : ViewModel() {
     }
 
     fun checkAndResetPeriodicTasks() {
+        // Find tasks that need to be reset (period expired and completed)
+        val tasksToReset = _tasks.value
+            .filter { it.isPeriodic() && it.isPeriodExpired() && it.status == TaskStatus.COMPLETED }
+            .map { it.id }
+            .toSet()
+
+        if (tasksToReset.isEmpty()) return
+
         _tasks.update { currentTasks ->
             currentTasks.map { task ->
-                if (task.isPeriodic() && task.isPeriodExpired() && task.status == TaskStatus.COMPLETED) {
+                if (task.id in tasksToReset) {
                     // Reset the task for the new period
                     task.copy(
                         status = TaskStatus.TO_DO,
@@ -231,15 +239,11 @@ class TaskViewModel : ViewModel() {
                 }
             }
         }
-        // Remove the task ID from rewarded list so it can earn points again
-        val expiredTaskIds = _tasks.value
-            .filter { it.isPeriodic() && it.status == TaskStatus.TO_DO }
-            .map { it.id }
-            .toSet()
 
+        // Only remove IDs of tasks that actually expired from rewarded list
         _rewardsState.update { current ->
             current.copy(
-                rewardedTaskIds = current.rewardedTaskIds - expiredTaskIds
+                rewardedTaskIds = current.rewardedTaskIds - tasksToReset
             )
         }
     }
