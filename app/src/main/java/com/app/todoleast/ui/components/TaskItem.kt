@@ -37,9 +37,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.app.todoleast.model.Priority
 import com.app.todoleast.model.Task
 import com.app.todoleast.model.TaskStatus
@@ -203,6 +205,19 @@ fun TaskItem(
                     StatusBadge(status = effectiveStatus)
                     PriorityBadge(priority = task.priority)
                 }
+            }
+
+            // Photo thumbnail
+            task.photoUri?.let { uri ->
+                Spacer(modifier = Modifier.width(8.dp))
+                AsyncImage(
+                    model = uri,
+                    contentDescription = "Photo de la tache",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     }
