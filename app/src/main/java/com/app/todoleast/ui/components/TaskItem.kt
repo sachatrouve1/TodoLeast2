@@ -320,9 +320,10 @@ fun TaskItem(
                     }
                 }
 
-                // Photo and menu column
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                // Photo and menu row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     // Photo thumbnail (clickable to view full screen)
                     task.photoUri?.let { uri ->
@@ -330,17 +331,16 @@ fun TaskItem(
                             model = uri,
                             contentDescription = "Photo de la tâche",
                             modifier = Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(10.dp))
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(12.dp))
                                 .border(
                                     width = 1.dp,
                                     color = MaterialTheme.colorScheme.outlineVariant,
-                                    shape = RoundedCornerShape(10.dp)
+                                    shape = RoundedCornerShape(12.dp)
                                 )
                                 .clickable { showPhotoViewer = true },
                             contentScale = ContentScale.Crop
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
                     }
 
                     // Menu button (only show when not in selection mode)
@@ -348,13 +348,13 @@ fun TaskItem(
                         Box {
                             IconButton(
                                 onClick = { showMenu = true },
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(40.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.MoreVert,
                                     contentDescription = "Options",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
                             DropdownMenu(
